@@ -5,14 +5,11 @@ import com.eauction.www.auction.models.ResponseAuction;
 import com.eauction.www.auction.models.ResponseUserBid;
 import com.eauction.www.auction.security.RequestContext;
 import com.eauction.www.auction.service.AuctionService;
-import com.eauction.www.auction.models.Auction;
 import com.eauction.www.auction.service.BiddingService;
-import com.sun.istack.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/users")
