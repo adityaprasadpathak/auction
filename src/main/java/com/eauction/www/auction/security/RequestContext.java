@@ -4,11 +4,16 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import java.util.Collection;
 
+/**
+ * Request Context is a service, contains information about User(i.e username and whether it is Admin or not).
+ * Request Context is populated every time a call is made.
+ * This is done in JwtFilter.class, during JWT token validation.
+ * For Open API (Request Context will be Empty or default-value)
+ */
 @Service
 public class RequestContext {
 
 
- private Collection<? extends GrantedAuthority> authorities;
  private String username;
  private boolean isAdmin;
 

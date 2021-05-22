@@ -1,15 +1,11 @@
 package com.eauction.www.auction.service;
 
-import com.eauction.www.auction.FakeDB;
-import com.eauction.www.auction.models.Bid;
-import com.eauction.www.auction.models.RequestUserBid;
-import com.eauction.www.auction.models.ResponseUserBid;
+import com.eauction.www.auction.exception.AuctionServiceException;
+import com.eauction.www.auction.models.*;
+import com.eauction.www.auction.security.RequestContext;
 import com.eauction.www.auction.util.Utility;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -18,6 +14,9 @@ public class BiddingService {
 
     @Autowired
     FakeDB fakeDB;
+
+    @Autowired
+    RequestContext requestContext;
 
     public synchronized ResponseUserBid applyBid(RequestUserBid requestUserBid , String username){
         validateBid(requestUserBid);
@@ -29,14 +28,14 @@ public class BiddingService {
         bid.setUsername(username);
 
         return fakeDB.addBid(bid);
-
-
     }
 
     private boolean validateBid(RequestUserBid requestUserBid) {
 
-        return true;
         //TODO: bidder must not be the owner of the Auction
+        validateBidder(requestUserBid.getAuctionId(),requestContext.getUsername());
+        return true;
+
 
         //TODO: an Admin cant bid.
 
@@ -48,6 +47,22 @@ public class BiddingService {
         // But there has to be a minimum and maximum limit set by Admin
 
 
+    }
+
+    private boolean validateBidder(String auctionId, String username) {
+
+        /**
+         * username : is bidder username
+         * auctionId : uniqueId of Auction
+         *
+         * if an auction present with given username and auctionId, means given username is owner of Auction.
+         * hence owner can't bid in his own auction.
+         */
+        Auction auction = fakeDB.getAuctionViaIdAndUserId(auctionId,username);
+        if (null != auction) {
+            throw new AuctionServiceException("Owner is not allowed to bid in his own Auction", ServiceErrorCode.OWNER_SAME_AS_BIDDER);
+        }
+        return true;
     }
 
     public  List<Bid> getBids(String auctionId, String username) {

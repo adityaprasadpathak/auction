@@ -1,4 +1,4 @@
-package com.eauction.www.auction;
+package com.eauction.www.auction.service;
 
 
 import com.eauction.www.auction.models.Auction;
@@ -42,12 +42,12 @@ public class FakeDB {
                 filter(auction -> auction.getUsername().equals(username)).collect(Collectors.toList());
     }
 
-    public List<Auction> getAuctionViaIdAndUserId(String auctionId,String userId)
+    public Auction getAuctionViaIdAndUserId(String auctionId,String userId)
     {
         return getAuctions().stream().
                 filter(auction ->
-                        (auction.getUsername().equals(userId) && auction.getAuctionId().equals(auctionId))).
-                collect(Collectors.toList());
+                        (auction.getUsername().equals(userId) && auction.getAuctionId().equals(auctionId))).findFirst().orElse(null);
+
     }
 
     public ResponseUserBid addBid(Bid bid) {

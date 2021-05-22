@@ -33,22 +33,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     JwtFilter jwtFilter;
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-
-/*        auth.inMemoryAuthentication()
-                .withUser("admin")
-                .password("admin")
-                .roles("ADMIN")
-                .and()
-                .withUser("user")
-                .password("user")
-                .roles("USER");*/
-
-        /*auth.jdbcAuthentication()
-                .dataSource(dataSource);*/
-
-        auth.userDetailsService(userDetailsService);
-    }
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception { auth.userDetailsService(userDetailsService); }
 
 
     @Bean
@@ -60,11 +45,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
    @Override
     protected void configure(HttpSecurity http) throws Exception {
-  /*      http.authorizeRequests()
-                .antMatchers("/admins/**").hasRole("ADMIN")
-                .antMatchers("/users/**").hasAnyRole("USER" ,"ADMIN")
-                .antMatchers("/").permitAll()
-                .and().formLogin();*/
 
        http.csrf().disable()
                .authorizeRequests()
@@ -77,7 +57,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                .anyRequest()
                .authenticated()
                .and().sessionManagement()
-               .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+               .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+               .maximumSessions(1)
+               .maxSessionsPreventsLogin(true);
 
        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
     }

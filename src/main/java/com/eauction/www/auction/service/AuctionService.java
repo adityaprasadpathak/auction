@@ -1,6 +1,5 @@
 package com.eauction.www.auction.service;
 
-import com.eauction.www.auction.FakeDB;
 import com.eauction.www.auction.models.Auction;
 import com.eauction.www.auction.security.RequestContext;
 import com.eauction.www.auction.util.Utility;

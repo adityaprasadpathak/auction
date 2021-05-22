@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * As this is not open controller, hence all Api's here in this controller needs AuthToken(JWT token) to make a call.
+ * AdminAuctionController as name suggest will contains Api's which needs to be called by Admin only.
+ */
 @RestController
 @RequestMapping("/admins")
 public class AdminAuctionController {
@@ -24,6 +28,8 @@ public class AdminAuctionController {
      * Get all auction till date.(have to be sorted in descending order w.r.t date)
      * Will gonna be very heavy operation and huge response.
      * Make it lazy load for items in auction
+     *
+     * Recommended is to use Pagination
      * @return
      */
     @GetMapping(value = "/auctions")
