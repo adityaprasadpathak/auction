@@ -4,9 +4,9 @@ import java.util.List;
 
 public class ResponseUserBid {
 
-        private Integer yourBid;
-        private Integer currentBid;
-        List<Bid> userBids;
+    private Integer yourBid;
+    private Integer currentBid;
+    List<Bid> userBids;
 
     public ResponseUserBid() {
     }

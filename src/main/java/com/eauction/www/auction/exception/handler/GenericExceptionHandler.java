@@ -16,28 +16,22 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GenericExceptionHandler {
 
     @ExceptionHandler(AuctionServiceException.class)
-    public ResponseEntity<GenericHttpError> handleAuctionServiceException(AuctionServiceException ase){
+    public ResponseEntity<GenericHttpError> handleAuctionServiceException(AuctionServiceException ase) {
 
         GenericHttpError genericHttpError = GenericHttpError.builder()
                 .errorStatus(HttpStatus.PRECONDITION_FAILED.toString())
-                .errorCode(HttpStatus.PRECONDITION_FAILED.value())
-                .errorMessage(ase.getMessage())
-                .displayMessage(ase.getMessage())
-                .serviceErrorCode(ase.getServiceErrorCode().getValue())
-                .exceptionStacktrace(ExceptionUtils.getStackTrace(ase))
-                .build();
+                .errorCode(HttpStatus.PRECONDITION_FAILED.value()).errorMessage(ase.getMessage())
+                .displayMessage(ase.getMessage()).serviceErrorCode(ase.getServiceErrorCode().getValue())
+                .exceptionStacktrace(ExceptionUtils.getStackTrace(ase)).build();
 
         return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(genericHttpError);
     }
 
-
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<GenericHttpError> handleBadCredentialsException(BadCredentialsException bce){
+    public ResponseEntity<GenericHttpError> handleBadCredentialsException(BadCredentialsException bce) {
 
-        GenericHttpError genericHttpError = GenericHttpError.builder()
-                .errorStatus(HttpStatus.UNAUTHORIZED.toString())
-                .errorCode(HttpStatus.UNAUTHORIZED.value())
-                .errorMessage("Wrong username/password has provided")
+        GenericHttpError genericHttpError = GenericHttpError.builder().errorStatus(HttpStatus.UNAUTHORIZED.toString())
+                .errorCode(HttpStatus.UNAUTHORIZED.value()).errorMessage("Wrong username/password has provided")
                 .displayMessage("Bad Credentials.PLease try Again")
                 .exceptionStacktrace(ExceptionUtils.getStackTrace(bce)).build();
 
@@ -45,10 +39,9 @@ public class GenericExceptionHandler {
     }
 
     @ExceptionHandler(LockedException.class)
-    public ResponseEntity<GenericHttpError> handleLockedException(LockedException le){
+    public ResponseEntity<GenericHttpError> handleLockedException(LockedException le) {
 
-        GenericHttpError genericHttpError = GenericHttpError.builder()
-                .errorStatus(HttpStatus.UNAUTHORIZED.toString())
+        GenericHttpError genericHttpError = GenericHttpError.builder().errorStatus(HttpStatus.UNAUTHORIZED.toString())
                 .errorCode(HttpStatus.UNAUTHORIZED.value())
                 .errorMessage("User is locked. Please contact administrator.")
                 .displayMessage("User is locked. Please contact administrator.")
@@ -56,6 +49,5 @@ public class GenericExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(genericHttpError);
     }
-
 
 }

@@ -27,18 +27,18 @@ public class AuctionService {
     }
 
     public Auction getAuctions(String userName, String auctionId) {
-         Optional<Auction> auctionOptional =
-                 getAuctions().stream().filter(auction -> auction.getAuctionId().equals(auctionId) && auction.getUsername().equals(userName)).findFirst();
-         return auctionOptional.isPresent()?auctionOptional.get() : null;
+        Optional<Auction> auctionOptional = getAuctions().stream()
+                .filter(auction -> auction.getAuctionId().equals(auctionId) && auction.getUsername().equals(userName))
+                .findFirst();
+        return auctionOptional.isPresent() ? auctionOptional.get() : null;
     }
 
-
     public Auction createAuction(Auction auction) {
-        validateUser(auction,requestContext.isAdmin());//in case auction created by Admin on behalf of user.
+        validateUser(auction, requestContext.isAdmin());// in case auction created by Admin on behalf of user.
         Utility.createAndPopulateAuctionId(auction);
         Utility.populateCurrentTime(auction);
         auction.setCreatedBy(requestContext.getUsername());
-        if(!requestContext.isAdmin()){
+        if (!requestContext.isAdmin()) {
             System.out.println("");
             auction.setUsername(requestContext.getUsername());
         }
@@ -51,11 +51,9 @@ public class AuctionService {
 
     }
 
-    private boolean validateUser(Auction auction , boolean isCreatedByAdmin) {
+    private boolean validateUser(Auction auction, boolean isCreatedByAdmin) {
         return true;
-        //TODO: validate the username if createdBy Admin
+        // TODO: validate the username if createdBy Admin
     }
 
-
 }
-

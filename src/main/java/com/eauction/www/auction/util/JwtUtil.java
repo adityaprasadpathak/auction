@@ -30,6 +30,7 @@ public class JwtUtil {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
+
     private Claims extractAllClaims(String token) {
         return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
     }
@@ -39,12 +40,11 @@ public class JwtUtil {
     }
 
     public String generateToken(UserDetails userDetails) {
-        final String authorities = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
+        final String authorities = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("claims",authorities);
+        claims.put("claims", authorities);
         return createToken(claims, userDetails.getUsername());
     }
 

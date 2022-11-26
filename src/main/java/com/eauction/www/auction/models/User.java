@@ -6,7 +6,6 @@ public class User {
     private String userType;
     private String emailId;
 
-
     public String getUserId() {
         return userId;
     }

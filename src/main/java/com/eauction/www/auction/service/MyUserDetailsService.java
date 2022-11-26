@@ -28,14 +28,15 @@ public class MyUserDetailsService implements UserDetailsService {
     private MyUserDetails convertUserEntity(UserEntity userEntity) {
 
         MyUserDetails myUserDetails = new MyUserDetails();
-        myUserDetails.setAccountNonExpired(userEntity.isActive());;
+        myUserDetails.setAccountNonExpired(userEntity.isActive());
+        ;
         myUserDetails.setAccountNonLocked(userEntity.isActive());
         myUserDetails.setCredentialsNonExpired(userEntity.isActive());
         myUserDetails.setEnabled(userEntity.isActive());
         myUserDetails.setPassword(userEntity.getPassword());
         myUserDetails.setUsername(userEntity.getUsername());
-        myUserDetails.setAuthorities(
-                Arrays.stream(userEntity.getRoles().split(",")).map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
-        return  myUserDetails;
+        myUserDetails.setAuthorities(Arrays.stream(userEntity.getRoles().split(",")).map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList()));
+        return myUserDetails;
     }
 }

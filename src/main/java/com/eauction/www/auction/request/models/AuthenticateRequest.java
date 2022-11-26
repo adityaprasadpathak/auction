@@ -2,7 +2,6 @@ package com.eauction.www.auction.request.models;
 
 public class AuthenticateRequest {
 
-
     private String username;
     private String password;
 

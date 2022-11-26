@@ -20,7 +20,6 @@ public class Auction {
     private String reasonForCancellation;
     private Long timeOfCancellation;
 
-
     public String getAuctionId() {
         return auctionId;
     }
@@ -135,13 +134,14 @@ public class Auction {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Auction)) return false;
+        if (this == o)
+            return true;
+        if (!(o instanceof Auction))
+            return false;
         Auction auction = (Auction) o;
-        return Objects.equals(auctionId, auction.auctionId) &&
-                Objects.equals(auctionName, auction.auctionName) &&
-                Objects.equals(auctionDescription, auction.auctionDescription) &&
-                Objects.equals(items, auction.items);
+        return Objects.equals(auctionId, auction.auctionId) && Objects.equals(auctionName, auction.auctionName)
+                && Objects.equals(auctionDescription, auction.auctionDescription)
+                && Objects.equals(items, auction.items);
     }
 
     @Override
@@ -151,11 +151,7 @@ public class Auction {
 
     @Override
     public String toString() {
-        return "Auction{" +
-                "auctionId='" + auctionId + '\'' +
-                ", auctionName='" + auctionName + '\'' +
-                ", auctionDescription='" + auctionDescription + '\'' +
-                ", items=" + items +
-                '}';
+        return "Auction{" + "auctionId='" + auctionId + '\'' + ", auctionName='" + auctionName + '\''
+                + ", auctionDescription='" + auctionDescription + '\'' + ", items=" + items + '}';
     }
 }

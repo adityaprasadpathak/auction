@@ -35,7 +35,6 @@ public class UserEntity {
     private Long modifiedTime;
     private String createdBy;
 
-
     public Integer getId() {
         return id;
     }

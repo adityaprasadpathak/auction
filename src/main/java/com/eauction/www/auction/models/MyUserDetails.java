@@ -8,7 +8,6 @@ import java.util.List;
 
 public class MyUserDetails implements UserDetails {
 
-
     private String password;
     private String username;
     private boolean accountNonExpired;

@@ -61,14 +61,14 @@ public class Item {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Item)) return false;
+        if (this == o)
+            return true;
+        if (!(o instanceof Item))
+            return false;
         Item item = (Item) o;
-        return Objects.equals(ItemId, item.ItemId) &&
-                Objects.equals(ItemName, item.ItemName) &&
-                Objects.equals(ItemDescription, item.ItemDescription) &&
-                Objects.equals(ItemStartPrice, item.ItemStartPrice) &&
-                Objects.equals(itemCount, item.itemCount);
+        return Objects.equals(ItemId, item.ItemId) && Objects.equals(ItemName, item.ItemName)
+                && Objects.equals(ItemDescription, item.ItemDescription)
+                && Objects.equals(ItemStartPrice, item.ItemStartPrice) && Objects.equals(itemCount, item.itemCount);
     }
 
     @Override
@@ -78,12 +78,8 @@ public class Item {
 
     @Override
     public String toString() {
-        return "Item{" +
-                "ItemId='" + ItemId + '\'' +
-                ", ItemName='" + ItemName + '\'' +
-                ", ItemDescription='" + ItemDescription + '\'' +
-                ", ItemStartPrice='" + ItemStartPrice + '\'' +
-                ", itemCount=" + itemCount +
-                '}';
+        return "Item{" + "ItemId='" + ItemId + '\'' + ", ItemName='" + ItemName + '\'' + ", ItemDescription='"
+                + ItemDescription + '\'' + ", ItemStartPrice='" + ItemStartPrice + '\'' + ", itemCount=" + itemCount
+                + '}';
     }
 }

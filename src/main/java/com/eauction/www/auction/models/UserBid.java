@@ -8,5 +8,4 @@ public class UserBid {
     private Integer yourBid;
     private Long timestamp;
 
-
 }

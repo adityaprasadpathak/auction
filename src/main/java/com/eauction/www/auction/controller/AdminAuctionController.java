@@ -1,6 +1,5 @@
 package com.eauction.www.auction.controller;
 
-
 import com.eauction.www.auction.dto.UserEntity;
 import com.eauction.www.auction.models.Auction;
 import com.eauction.www.auction.models.UserRegistration;
@@ -25,28 +24,16 @@ public class AdminAuctionController {
     public AuctionService auctionService;
 
     /**
-     * Get all auction till date.(have to be sorted in descending order w.r.t date)
-     * Will gonna be very heavy operation and huge response.
-     * Make it lazy load for items in auction
-     *
+     * Get all auction till date.(have to be sorted in descending order w.r.t date) Will going to be very heavy
+     * operation and huge response. Make it lazy load for items in auction
+     * <p>
      * Recommended is to use Pagination
+     *
      * @return
      */
     @GetMapping(value = "/auctions")
-    public List<Auction> getAuctions()
-    {
+    public List<Auction> getAuctions() {
         return auctionService.getAuctions();
     }
-
-
-
-
-
-
-
-
-
-
-
 
 }

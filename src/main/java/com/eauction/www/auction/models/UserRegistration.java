@@ -1,5 +1,8 @@
 package com.eauction.www.auction.models;
 
+import lombok.Builder;
+
+@Builder
 public class UserRegistration {
 
     private String userName;
@@ -13,7 +16,6 @@ public class UserRegistration {
     private String orgType;
     private boolean isAdmin;
     private String createdBy;
-
 
     public String getUserName() {
         return userName;
