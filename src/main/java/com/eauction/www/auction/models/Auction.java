@@ -1,8 +1,8 @@
 package com.eauction.www.auction.models;
 
+import javax.persistence.*;
 import java.util.List;
 import java.util.Objects;
-
 public class Auction {
 
     private String username;
@@ -10,11 +10,12 @@ public class Auction {
     private String auctionId;
     private String auctionName;
     private String auctionDescription;
+
     private List<Item> items;
     private Long startTimestamp;
     private Long stopTimestamp;
     private Long createdTimestamp;
-    private String status;
+    private AuctionStatus status;
     private boolean isResultDeclared;
     private boolean isCancelled;
     private String reasonForCancellation;
@@ -68,11 +69,11 @@ public class Auction {
         this.stopTimestamp = stopTimestamp;
     }
 
-    public String getStatus() {
+    public AuctionStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(AuctionStatus status) {
         this.status = status;
     }
 

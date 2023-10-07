@@ -1,5 +1,8 @@
 package com.eauction.www.auction.models;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.Objects;
 
 public class Item {

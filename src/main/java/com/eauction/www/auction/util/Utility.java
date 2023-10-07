@@ -7,6 +7,7 @@ import com.eauction.www.auction.models.UserRegistration;
 import org.apache.commons.math3.util.Precision;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -149,5 +150,58 @@ public class Utility {
 
     public static void populateCurrentTime(Auction auction) {
         auction.setCreatedTimestamp(System.currentTimeMillis());
+    }
+
+    public static String calculateCronExpression(Long timestamp) {
+        // Convert the timestamp to a ZonedDateTime in the IST time zone
+        ZonedDateTime zonedDateTime = Instant.ofEpochMilli(timestamp)
+                .atZone(ZoneId.of("Asia/Kolkata"));
+
+        // Extract the individual components (year, month, day, hour, minute) from the ZonedDateTime
+        int year = zonedDateTime.getYear();
+        int month = zonedDateTime.getMonthValue();
+        int day = zonedDateTime.getDayOfMonth();
+        int hour = zonedDateTime.getHour();
+        int minute = zonedDateTime.getMinute();
+
+        // Create the cron expression
+        String cronExpression = String.format("0 %d %d %d %d ?", minute, hour, day, month);
+
+        return cronExpression;
+    }
+
+    public static void populateStartStopTime(Auction auction) {
+        LocalTime lastSecond = LocalTime.of(16, 47, 0, 000_000_000); // 11:59:59.999999999
+        auction.setStartTimestamp(Utility.getTimestampsFor(0,lastSecond));
+        auction.setStopTimestamp(Utility.getTimestampsFor(2, lastSecond));
+    }
+
+    /*public static long[] getTimestampsForTomorrow() {
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        LocalTime midnight = LocalTime.MIDNIGHT;
+        LocalTime lastSecond = LocalTime.of(23, 59, 59, 999_999_999); // 11:59:59.999999999
+
+        ZonedDateTime midnightTomorrow = ZonedDateTime.of(tomorrow, midnight, ZoneId.systemDefault());
+        ZonedDateTime lastSecondTomorrow = ZonedDateTime.of(tomorrow, lastSecond, ZoneId.systemDefault());
+
+        long midnightTimestamp = midnightTomorrow.toInstant().toEpochMilli();
+        long lastSecondOfTomorrowTimestamp = lastSecondTomorrow.toInstant().toEpochMilli();
+
+        return new long[]{midnightTimestamp, lastSecondOfTomorrowTimestamp};
+    }*/
+
+    public static long getTimestampsForTomorrowMidnight() {
+        return getTimestampsFor(1, LocalTime.MIDNIGHT);
+    }
+
+    public static long getTimestampsForTomorrowEOD() {
+        LocalTime lastSecond = LocalTime.of(23, 59, 59, 999_999_999); // 11:59:59.999999999
+        return getTimestampsFor(1, lastSecond);
+    }
+
+    public static long getTimestampsFor(long plusDays, LocalTime secondsAhead) {
+        LocalDate tomorrow = LocalDate.now().plusDays(plusDays);
+        ZonedDateTime tomorrowSecAhead = ZonedDateTime.of(tomorrow, secondsAhead, ZoneId.systemDefault());
+        return tomorrowSecAhead.toInstant().toEpochMilli();
     }
 }

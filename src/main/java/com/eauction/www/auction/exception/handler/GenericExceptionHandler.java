@@ -20,8 +20,10 @@ public class GenericExceptionHandler {
 
         GenericHttpError genericHttpError = GenericHttpError.builder()
                 .errorStatus(HttpStatus.PRECONDITION_FAILED.toString())
-                .errorCode(HttpStatus.PRECONDITION_FAILED.value()).errorMessage(ase.getMessage())
-                .displayMessage(ase.getMessage()).serviceErrorCode(ase.getServiceErrorCode().getValue())
+                .errorCode(HttpStatus.PRECONDITION_FAILED.value())
+                .errorMessage(ase.getMessage())
+                .displayMessage(ase.getMessage())
+                .serviceErrorCode(ase.getServiceErrorCode().getValue())
                 .exceptionStacktrace(ExceptionUtils.getStackTrace(ase)).build();
 
         return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(genericHttpError);

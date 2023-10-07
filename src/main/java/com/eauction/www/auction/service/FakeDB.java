@@ -6,6 +6,7 @@ import com.eauction.www.auction.models.ResponseUserBid;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -57,19 +58,30 @@ public class FakeDB {
 
     }
 
-    private Integer getCurrentBid(String auctionId, String itemId) {
-        Optional<Bid> optionalBid = bids.stream()
-                .filter(bid -> bid.getAuctionId().equals(auctionId) && bid.getItemId().equals(itemId)).findFirst();
-        if (optionalBid.isPresent()) {
-            return optionalBid.get().getBid();
-        } else {
-            return 0;
-        }
+    /**
+     * This method will return all the bids made by a user in an auction, including all items
+     * @param auctionId
+     * @param username
+     * @return
+     */
+    public List<Bid> getUserBidsViaAuctionId(String auctionId, String username) {
+
+        return bids.stream()
+                .filter(bid -> bid.getAuctionId().equals(auctionId) && bid.getUsername().equals(username))
+                .collect(Collectors.toList());
     }
 
-    public List<Bid> getBids(String auctionId, String username) {
+    public List<Auction> getAuctionBetweenTimestamp(long fromTimestamp, long toTimestamp) {
+       return getAuctions().parallelStream().filter(auction -> auction.getStartTimestamp() >= fromTimestamp
+                || auction.getStartTimestamp() <= toTimestamp).collect(Collectors.toList());
+    }
 
-        return bids.stream().filter(bid -> bid.getAuctionId().equals(auctionId) && bid.getUsername().equals(username))
-                .collect(Collectors.toList());
+    public Integer getCurrentBid(String auctionId, String itemId) {
+        Optional<Integer> highestBid = bids.parallelStream().
+                filter(bid -> bid.getAuctionId().equals(auctionId)
+                && bid.getItemId().equals(itemId))
+                .map(Bid::getBid)
+                .max(Comparator.naturalOrder());
+        return highestBid.orElse(0);
     }
 }

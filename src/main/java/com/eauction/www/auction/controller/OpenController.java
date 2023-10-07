@@ -24,8 +24,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * This controller contains Api's which needs no AuthToken(JWT token) to call. Therefore they are termed as open Api's
- * and hence controller name.
+ * This controller contains Api's which needs no AuthToken(JWT token) to call.
+ * Therefore, they are termed as open Api's, and hence controller name.
  */
 @RestController
 public class OpenController {

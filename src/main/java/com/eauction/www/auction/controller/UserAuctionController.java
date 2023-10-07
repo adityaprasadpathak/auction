@@ -63,7 +63,7 @@ public class UserAuctionController {
     }
 
     /**
-     * This Api is used to fetch list of bids made by an user on an auction(includes any item)
+     * This Api is used to fetch list of bids made by a user on an auction(includes any item)
      *
      * @param auctionId
      *
@@ -72,7 +72,7 @@ public class UserAuctionController {
      */
     @GetMapping(value = "/bid/auctions/{auctionId}")
     public ResponseEntity<ResponseUserBid> getUserBids(@PathVariable(required = true) String auctionId) {
-        return ResponseEntity.ok(new ResponseUserBid(biddingService.getBids(auctionId, requestContext.getUsername())));
+        return ResponseEntity.ok(new ResponseUserBid(biddingService.getUserBidsViaAuctionId(auctionId, requestContext.getUsername())));
     }
 
 }

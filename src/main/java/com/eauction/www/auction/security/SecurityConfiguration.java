@@ -46,11 +46,16 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
 
         http.csrf().disable().authorizeRequests().antMatchers("/users/**")
-                .access("hasRole('ROLE_USER')  or hasRole('ROLE_ADMIN')").antMatchers("/admins/**")
-                .access("hasRole('ROLE_ADMIN')").antMatchers("/useradmin/**")
-                .access("hasRole('ROLE_USER')  or hasRole('ROLE_ADMIN')").antMatchers("/authenticate").permitAll()
-                .antMatchers("/registration").permitAll().antMatchers("/auctions").permitAll().anyRequest()
-                .authenticated().and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .access("hasRole('ROLE_USER')  or hasRole('ROLE_ADMIN')")
+                .antMatchers("/admins/**")
+                .access("hasRole('ROLE_ADMIN')")
+                .antMatchers("/useradmin/**")
+                .access("hasRole('ROLE_USER')  or hasRole('ROLE_ADMIN')")
+                .antMatchers("/authenticate").permitAll()
+                .antMatchers("/registration").permitAll()
+                .antMatchers("/auctions").permitAll().anyRequest()
+                .authenticated().and().sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .maximumSessions(1).maxSessionsPreventsLogin(true);
 
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
