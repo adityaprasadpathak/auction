@@ -1,15 +1,17 @@
 package com.eauction.www.auction.service;
 
 import com.eauction.www.auction.constants.ErrorConstants;
+import com.eauction.www.auction.dto.BidEntity;
 import com.eauction.www.auction.exception.AuctionServiceException;
 import com.eauction.www.auction.exception.handler.BidServiceException;
 import com.eauction.www.auction.models.*;
+import com.eauction.www.auction.repository.BidRepository;
 import com.eauction.www.auction.security.RequestContext;
-import com.eauction.www.auction.util.Utility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class BiddingService {
@@ -18,30 +20,55 @@ public class BiddingService {
     FakeDB fakeDB;
 
     @Autowired
+    BidRepository bidRepository;
+
+    @Autowired
     RequestContext requestContext;
 
-    @Autowired AuctionService auctionService;
+    @Autowired
+    AuctionService auctionService;
 
     public synchronized ResponseUserBid applyBid(RequestUserBid requestUserBid, String username) {
         validateBid(requestUserBid);
-        Bid bid = new Bid(Utility.generateUniqueBidId());
-        bid.setBid(requestUserBid.getBid());
-        bid.setAuctionId(requestUserBid.getAuctionId());
-        bid.setItemId(requestUserBid.getItemId());
-        bid.setBidTime(System.currentTimeMillis());
-        bid.setUsername(username);
+        BidEntity bidEntity = new BidEntity();
+        bidEntity.setAuctionId(requestUserBid.getAuctionId());
+        bidEntity.setItemId(requestUserBid.getItemId());
+        bidEntity.setUsername(requestContext.getUsername());
+        bidEntity.setBid(requestUserBid.getBid());
+        bidEntity.setBidValueAtThatTime(getCurrentHighestBid(requestUserBid.getAuctionId(), requestUserBid.getItemId()));
 
-        return fakeDB.addBid(bid);
+        BidEntity responseBidEntity = bidRepository.save(bidEntity);//fakeDB.addBid(bid);
+
+        return ResponseUserBid.builder()
+                .yourBid(responseBidEntity.getBid())
+                .currentBid(getCurrentHighestBid(requestUserBid.getAuctionId(), requestUserBid.getItemId()))
+                .build();
     }
 
-    public Integer getCurrentBid(String auctionId, String itemId) {
-        return fakeDB.getCurrentBid(auctionId,itemId);
+    /**
+     * Retrieves the current highest bid for a specific item and auction.
+     *
+     * @param auctionId The unique identifier of the auction.
+     * @param itemId    The unique identifier of the item.
+     * @return The current highest bid value, or {@code null} if there are no bids.
+     */
+    public Integer getCurrentHighestBid(String auctionId, String itemId) {
+        //return fakeDB.getCurrentBid(auctionId,itemId);
+        Optional<BidEntity> highestBidSoFar = bidRepository.findHighestBidByItemIdAndAuctionId(itemId, auctionId);
+        return highestBidSoFar.map(BidEntity::getBid).orElse(null);
+    }
+
+
+    public BidEntity getCurrentHighestBidder(String auctionId, String itemId) {
+        //return fakeDB.getCurrentBid(auctionId,itemId);
+        Optional<BidEntity> highestBidSoFar = bidRepository.findHighestBidByItemIdAndAuctionId(itemId, auctionId);
+        return highestBidSoFar.orElse(null);
     }
 
     private boolean validateBid(RequestUserBid requestUserBid) {
 
         // Validate Auction is Active
-        if(!validateAuction(requestUserBid.getAuctionId())) {
+        if (!validateAuction(requestUserBid.getAuctionId())) {
             throw new BidServiceException(ErrorConstants.AUCTION_NOT_ACTIVE, ServiceErrorCode.AUCTION_NOT_ACTIVE);
         }
 
@@ -52,7 +79,7 @@ public class BiddingService {
         // TODO: an Admin can't bid.
 
         // TODO: validate current bid should be less than the bid applied by the user.
-        if(!validateBidvalue(requestUserBid.getAuctionId(), requestUserBid.getItemId(), requestUserBid.getBid())) {
+        if (!validateBidValue(requestUserBid.getAuctionId(), requestUserBid.getItemId(), requestUserBid.getBid())) {
             throw new BidServiceException(ErrorConstants.BID_LESS_CURR_VAL, ServiceErrorCode.BID_IS_LESS_THAN_CURR_VALUE);
         }
 
@@ -72,8 +99,9 @@ public class BiddingService {
         return false;
     }
 
-    private boolean validateBidvalue(String auctionId, String itemId, Integer bidvalue) {
-        return getCurrentBid(auctionId, itemId) < bidvalue;
+    private boolean validateBidValue(String auctionId, String itemId, Integer bidValue) {
+        Integer currBid = getCurrentHighestBid(auctionId, itemId);
+        return currBid == null || currBid < bidValue;
     }
 
     private boolean validateBidder(String auctionId, String username) {
@@ -85,10 +113,10 @@ public class BiddingService {
          * if an auction present with given username and auctionId, means given username is owner of Auction. hence,
          * owner can't bid in his own auction.
          */
-        Auction auction = fakeDB.getAuctionViaIdAndUserId(auctionId, username);
+
+        Auction auction = auctionService.getAuctionViaIdAndUsername(auctionId, username);//fakeDB.getAuctionViaIdAndUserId(auctionId, username);
         if (null != auction) {
-            throw new AuctionServiceException(ErrorConstants.OWNER_BID_NOT_ALLOWED,
-                    ServiceErrorCode.BIDDER_SAME_AS_OWNER);
+            throw new AuctionServiceException(ErrorConstants.OWNER_BID_NOT_ALLOWED, ServiceErrorCode.BIDDER_SAME_AS_OWNER);
         }
         return true;
     }

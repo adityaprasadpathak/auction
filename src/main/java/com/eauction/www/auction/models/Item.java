@@ -1,49 +1,59 @@
 package com.eauction.www.auction.models;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import com.eauction.www.auction.dto.ItemEntity;
+import lombok.NoArgsConstructor;
+
 import java.util.Objects;
 
+@NoArgsConstructor
 public class Item {
 
-    private String ItemId;
-    private String ItemName;
-    private String ItemDescription;
-    private Double ItemStartPrice;
-    private Integer itemCount;
-    private String auctionId;
+    public Item(ItemEntity itemEntity) {
+        this.auctionId = itemEntity.getAuctionEntity().getAuctionId();
+        this.itemDescription = itemEntity.getItemDescription();
+        this.itemName = itemEntity.getItemName();
+        this.itemId = itemEntity.getItemId();
+        this.itemCount = itemEntity.getItemCount();
+        this.itemStartPrice = itemEntity.getItemStartPrice();
+    }
+
+        private String itemId;
+        private String itemName;
+        private String itemDescription;
+        private Double itemStartPrice;
+        private Integer itemCount;
+        private String auctionId;
 
     public String getItemId() {
-        return ItemId;
+        return itemId;
     }
 
     public void setItemId(String itemId) {
-        ItemId = itemId;
+        this.itemId = itemId;
     }
 
     public String getItemName() {
-        return ItemName;
+        return itemName;
     }
 
     public void setItemName(String itemName) {
-        ItemName = itemName;
+        this.itemName = itemName;
     }
 
     public String getItemDescription() {
-        return ItemDescription;
+        return itemDescription;
     }
 
     public void setItemDescription(String itemDescription) {
-        ItemDescription = itemDescription;
+        this.itemDescription = itemDescription;
     }
 
     public Double getItemStartPrice() {
-        return ItemStartPrice;
+        return itemStartPrice;
     }
 
     public void setItemStartPrice(Double itemStartPrice) {
-        ItemStartPrice = itemStartPrice;
+        this.itemStartPrice = itemStartPrice;
     }
 
     public Integer getItemCount() {
@@ -69,20 +79,20 @@ public class Item {
         if (!(o instanceof Item))
             return false;
         Item item = (Item) o;
-        return Objects.equals(ItemId, item.ItemId) && Objects.equals(ItemName, item.ItemName)
-                && Objects.equals(ItemDescription, item.ItemDescription)
-                && Objects.equals(ItemStartPrice, item.ItemStartPrice) && Objects.equals(itemCount, item.itemCount);
+        return Objects.equals(itemId, item.itemId) && Objects.equals(itemName, item.itemName)
+                && Objects.equals(itemDescription, item.itemDescription)
+                && Objects.equals(itemStartPrice, item.itemStartPrice) && Objects.equals(itemCount, item.itemCount);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ItemId, ItemName, ItemDescription, ItemStartPrice, itemCount);
+        return Objects.hash(itemId, itemName, itemDescription, itemStartPrice, itemCount);
     }
 
     @Override
     public String toString() {
-        return "Item{" + "ItemId='" + ItemId + '\'' + ", ItemName='" + ItemName + '\'' + ", ItemDescription='"
-                + ItemDescription + '\'' + ", ItemStartPrice='" + ItemStartPrice + '\'' + ", itemCount=" + itemCount
+        return "Item{" + "ItemId='" + itemId + '\'' + ", ItemName='" + itemName + '\'' + ", ItemDescription='"
+                + itemDescription + '\'' + ", ItemStartPrice='" + itemStartPrice + '\'' + ", itemCount=" + itemCount
                 + '}';
     }
 }

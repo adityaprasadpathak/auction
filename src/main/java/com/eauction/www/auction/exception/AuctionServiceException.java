@@ -1,10 +1,12 @@
 package com.eauction.www.auction.exception;
 
 import com.eauction.www.auction.models.ServiceErrorCode;
+import lombok.Getter;
 
+@Getter
 public class AuctionServiceException extends RuntimeException {
 
-    private ServiceErrorCode serviceErrorCode;
+    private final ServiceErrorCode serviceErrorCode;
 
     public AuctionServiceException(ServiceErrorCode serviceErrorCode) {
         this.serviceErrorCode = serviceErrorCode;
@@ -31,7 +33,4 @@ public class AuctionServiceException extends RuntimeException {
         this.serviceErrorCode = serviceErrorCode;
     }
 
-    public ServiceErrorCode getServiceErrorCode() {
-        return serviceErrorCode;
-    }
 }

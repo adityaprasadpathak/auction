@@ -1,6 +1,17 @@
 package com.eauction.www.auction.models;
 
+import com.eauction.www.auction.dto.BidEntity;
+
 public class Bid {
+
+    public Bid(BidEntity bidEntity) {
+        this.auctionId = bidEntity.getAuctionId();
+        this.itemId = bidEntity.getItemId();
+        this.bidTime = bidEntity.getBidTime();
+        this.bidValueAtThatTime = bidEntity.getBidValueAtThatTime();
+        this.username = bidEntity.getUsername();
+
+    }
 
     private String bidId;
     private String auctionId;
@@ -10,6 +21,8 @@ public class Bid {
     private String username;
     private Long bidTime;
 
+    // remove this Constructor later
+    // BidId will be created by DB itself
     public Bid(String bidId) {
         this.bidId = bidId;
     }

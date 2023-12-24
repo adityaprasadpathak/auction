@@ -1,10 +1,15 @@
 package com.eauction.www.auction.service;
 
 import com.eauction.www.auction.constants.ErrorConstants;
+import com.eauction.www.auction.dto.AuctionEntity;
 import com.eauction.www.auction.exception.AuctionServiceException;
 import com.eauction.www.auction.models.Auction;
+import com.eauction.www.auction.models.AuctionStatus;
+import com.eauction.www.auction.models.Item;
 import com.eauction.www.auction.models.ServiceErrorCode;
+import com.eauction.www.auction.repository.AuctionRepository;
 import com.eauction.www.auction.security.RequestContext;
+import com.eauction.www.auction.util.ConverterUtility;
 import com.eauction.www.auction.util.Utility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,7 +17,6 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class AuctionService {
@@ -21,26 +25,20 @@ public class AuctionService {
     RequestContext requestContext;
 
     @Autowired
-    FakeDB fakeDB;
+    AuctionRepository auctionRepository;
 
     public List<Auction> getAuctions() {
-        return fakeDB.getAuctions();
+        return ConverterUtility.convertToAuctionList(auctionRepository.findAll());
     }
 
     public List<Auction> getAuctions(String username) {
-        return fakeDB.getAuctionViaUsername(username);
+        return ConverterUtility.convertToAuctionList(auctionRepository.findByUsername(username));
     }
 
     public List<Auction> getAuctions(long fromTimestamp, long toTimestamp) {
-        return fakeDB.getAuctionBetweenTimestamp(fromTimestamp, toTimestamp);
-    }
+        return ConverterUtility.convertToAuctionList(
+                auctionRepository.findAuctionsBetweenStartTimestamp(fromTimestamp,toTimestamp));
 
-    public Auction getAuctions(String userName, String auctionId) {
-        Optional<Auction> auctionOptional = getAuctions().stream()
-                .filter(auction -> auction.getAuctionId().equals(auctionId)
-                        && auction.getUsername().equals(userName))
-                .findFirst();
-        return auctionOptional.isPresent() ? auctionOptional.get() : null;
     }
 
     public Auction createAuction(Auction auction) {
@@ -50,20 +48,19 @@ public class AuctionService {
                     ErrorConstants.WRONG_AUCTION_TIMESTAMP,
                     ServiceErrorCode.WRONG_AUCTION_TIMESTAMP);
         }
-        Utility.createAndPopulateAuctionId(auction);
-        Utility.populateCurrentTime(auction);
+        //Utility.populateCurrentTime(auction);
         Utility.populateStartStopTime(auction);
         auction.setCreatedBy(requestContext.getUsername());
+
+        /**
+         * if Auction is created by a User, set username to username of the user
+         * else set it to null
+         */
         if (!requestContext.isAdmin()) {
             System.out.println("");
             auction.setUsername(requestContext.getUsername());
         }
-        Auction a = fakeDB.createAuction(auction);
-        if (null != a) {
-            return a;
-        } else {
-            throw new RuntimeException("Unable to create Exception");
-        }
+        return new Auction(auctionRepository.save(new AuctionEntity(auction)));
 
     }
 
@@ -79,9 +76,29 @@ public class AuctionService {
     }
 
     public Auction getAuctionViaAuctionId(String auctionId) {
-        return getAuctions().stream()
-                .filter(auction -> auction.getAuctionId().equals(auctionId))
-                .findFirst()
-                .orElse(null);
+        return auctionRepository.findByAuctionId(auctionId)
+                .map(Auction::new).orElse(null);
+    }
+
+    public Auction getAuctionViaIdAndUsername(String auctionId,String username) {
+       return auctionRepository.findByAuctionIdAndUsername(auctionId,username)
+               .map(Auction::new).orElse(null);
+    }
+
+    public boolean isAuctionActive(String auctionId) {
+        return AuctionStatus.IN_PROGRESS.equals(getAuctionViaAuctionId(auctionId).getStatus());
+    }
+
+    public boolean isAuctionFinished(String auctionId) {
+        return AuctionStatus.FINISHED.equals(getAuctionViaAuctionId(auctionId).getStatus());
+    }
+
+    public List<Item> getItemsforAuction(String auctionId) {
+        Auction auction = getAuctionViaAuctionId(auctionId);
+        if (null != auction) {
+            return auction.getItems();
+        } else {
+            throw new AuctionServiceException("Invalid AuctionId",ServiceErrorCode.INVALID_AUCTION_ID);
+        }
     }
 }

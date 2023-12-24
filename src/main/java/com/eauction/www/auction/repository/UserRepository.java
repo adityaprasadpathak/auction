@@ -1,8 +1,6 @@
-package com.eauction.www.auction.repo;
+package com.eauction.www.auction.repository;
 
 import com.eauction.www.auction.dto.UserEntity;
-import com.eauction.www.auction.models.MyUserDetails;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

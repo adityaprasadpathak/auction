@@ -2,7 +2,7 @@ package com.eauction.www.auction.service;
 
 import com.eauction.www.auction.dto.UserEntity;
 import com.eauction.www.auction.models.MyUserDetails;
-import com.eauction.www.auction.repo.UserRepository;
+import com.eauction.www.auction.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

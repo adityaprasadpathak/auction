@@ -1,8 +1,10 @@
 package com.eauction.www.auction.controller;
 
+import com.eauction.www.auction.exception.AuctionServiceException;
 import com.eauction.www.auction.models.RequestUserBid;
 import com.eauction.www.auction.models.ResponseAuction;
 import com.eauction.www.auction.models.ResponseUserBid;
+import com.eauction.www.auction.models.ServiceErrorCode;
 import com.eauction.www.auction.security.RequestContext;
 import com.eauction.www.auction.service.AuctionService;
 import com.eauction.www.auction.service.BiddingService;
@@ -41,7 +43,7 @@ public class UserAuctionController {
     public ResponseEntity<ResponseAuction> getAuctions(@RequestParam(required = false) String auctionId) {
 
         ResponseAuction responseAuction = auctionId != null
-                ? new ResponseAuction(auctionService.getAuctions(requestContext.getUsername(), auctionId))
+                ? new ResponseAuction(auctionService.getAuctionViaIdAndUsername(auctionId, requestContext.getUsername()))
                 : new ResponseAuction(auctionService.getAuctions(requestContext.getUsername()));
         return ResponseEntity.ok(responseAuction);
     }
@@ -58,8 +60,16 @@ public class UserAuctionController {
     @PostMapping(value = "/bid/auctions")
     public ResponseEntity<ResponseUserBid> applyBid(@RequestBody RequestUserBid requestUserBid) {
         // TODO: Admin can bid on behalf of an User.
+        if(validateAuctionStatus(requestUserBid.getAuctionId())) {
+            return ResponseEntity.ok(biddingService.applyBid(requestUserBid, requestContext.getUsername()));
+        } else {
+            throw new AuctionServiceException(ServiceErrorCode.AUCTION_NOT_ACTIVE);
+        }
 
-        return ResponseEntity.ok(biddingService.applyBid(requestUserBid, requestContext.getUsername()));
+    }
+
+    private boolean validateAuctionStatus(String auctionId) {
+        return auctionService.isAuctionActive(auctionId);
     }
 
     /**

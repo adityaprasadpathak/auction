@@ -1,27 +1,30 @@
 package com.eauction.www.auction.controller;
 
+import com.eauction.www.auction.dto.BidEntity;
 import com.eauction.www.auction.dto.UserEntity;
-import com.eauction.www.auction.models.Auction;
-import com.eauction.www.auction.models.MyUserDetails;
-import com.eauction.www.auction.models.UserRegistration;
-import com.eauction.www.auction.repo.UserRepository;
+import com.eauction.www.auction.exception.AuctionServiceException;
+import com.eauction.www.auction.models.*;
+import com.eauction.www.auction.repository.UserRepository;
 import com.eauction.www.auction.request.models.AuthenticateRequest;
 import com.eauction.www.auction.response.models.AuthenticateResponse;
 import com.eauction.www.auction.security.RequestContext;
+import com.eauction.www.auction.service.AuctionService;
+import com.eauction.www.auction.service.BiddingService;
 import com.eauction.www.auction.service.MyUserDetailsService;
 import com.eauction.www.auction.util.JwtUtil;
 import com.eauction.www.auction.util.Utility;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This controller contains Api's which needs no AuthToken(JWT token) to call.
@@ -47,6 +50,13 @@ public class OpenController {
 
     @Autowired
     RequestContext requestContext;
+
+
+    @Autowired
+    AuctionService auctionService;
+
+    @Autowired
+    BiddingService biddingService;
 
     /**
      * Test API to get Sample Auction response. Will be deleting it after
@@ -111,6 +121,35 @@ public class OpenController {
         String jwtToken = jwtUtil.generateToken(userDetails);
 
         return ResponseEntity.ok(new AuthenticateResponse(jwtToken));
+    }
+
+    @GetMapping("/auction/{auctionId}/result")
+    public List<Result> getResult(@PathVariable String auctionId) {
+
+        List<Result> auctionResult = new ArrayList<>();
+        if (auctionService.isAuctionFinished(auctionId)) {
+             List<Item> auctionItems = auctionService.getItemsforAuction(auctionId);
+             auctionItems.parallelStream().forEach(item -> {
+                 BidEntity bidEntity = biddingService.getCurrentHighestBidder(auctionId,item.getItemId());
+                 if (null != bidEntity) {
+                     Result result = Result.builder()
+                             .itemId(bidEntity.getItemId())
+                             .bidder(bidEntity.getUsername())
+                             .bidAmount(bidEntity.getBid())
+                             .build();
+                     auctionResult.add(result);
+                 }
+             });
+             return auctionResult;
+
+        } else {
+            throw new AuctionServiceException(
+                    "Auction is Still Active, result will be declared once Auction is Finished"
+                    ,ServiceErrorCode.AUCTION_NOT_FINISHED);
+        }
+
+
+        // if Auction is finished, fetch top 3 bids
     }
 
 }

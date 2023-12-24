@@ -52,4 +52,16 @@ public class GenericExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(genericHttpError);
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<GenericHttpError> handleRuntimeException(RuntimeException re) {
+
+        GenericHttpError genericHttpError = GenericHttpError.builder().errorStatus(HttpStatus.INTERNAL_SERVER_ERROR.toString())
+                .errorCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .errorMessage(re.getMessage())
+                .displayMessage(re.getMessage())
+                .exceptionStacktrace(ExceptionUtils.getStackTrace(re)).build();
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(genericHttpError);
+    }
+
 }

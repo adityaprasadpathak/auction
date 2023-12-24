@@ -1,16 +1,48 @@
 package com.eauction.www.auction.models;
 
-import javax.persistence.*;
+import com.eauction.www.auction.dto.AuctionEntity;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Collectors;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Auction {
+
+    /**
+     * Copy Constructor for converting an {@code AuctionEntity} to an {@code Auction}.
+     * <p>
+     * This constructor creates a new {@code Auction} object by extracting relevant information
+     * from the provided {@code AuctionEntity}. It is particularly useful when transferring
+     * data between the database entities and the business model objects.
+     * </p>
+     *
+     * @param auctionEntity The {@code AuctionEntity} to be converted.
+     */
+    public Auction(AuctionEntity auctionEntity) {
+        this.auctionId = auctionEntity.getAuctionId();
+        this.auctionName = auctionEntity.getAuctionName();
+        this.createdBy = auctionEntity.getCreatedBy();
+        this.startTimestamp = auctionEntity.getStartTimestamp();
+        this.stopTimestamp = auctionEntity.getStopTimestamp();
+        this.isCancelled = auctionEntity.isCancelled();
+        this.isResultDeclared = auctionEntity.isResultDeclared();
+        this.username = auctionEntity.getUsername();
+        this.createdTimestamp = auctionEntity.getCreatedTimestamp();
+        this.status = auctionEntity.getStatus();
+        this.items = auctionEntity.getItems().stream().map(Item::new).collect(Collectors.toList());
+    }
+
 
     private String username;
     private String createdBy;
     private String auctionId;
     private String auctionName;
     private String auctionDescription;
-
     private List<Item> items;
     private Long startTimestamp;
     private Long stopTimestamp;
@@ -20,139 +52,4 @@ public class Auction {
     private boolean isCancelled;
     private String reasonForCancellation;
     private Long timeOfCancellation;
-
-    public String getAuctionId() {
-        return auctionId;
-    }
-
-    public void setAuctionId(String auctionId) {
-        this.auctionId = auctionId;
-    }
-
-    public String getAuctionName() {
-        return auctionName;
-    }
-
-    public void setAuctionName(String auctionName) {
-        this.auctionName = auctionName;
-    }
-
-    public String getAuctionDescription() {
-        return auctionDescription;
-    }
-
-    public void setAuctionDescription(String auctionDescription) {
-        this.auctionDescription = auctionDescription;
-    }
-
-    public List<Item> getItems() {
-        return items;
-    }
-
-    public void setItems(List<Item> items) {
-        this.items = items;
-    }
-
-    public Long getStartTimestamp() {
-        return startTimestamp;
-    }
-
-    public void setStartTimestamp(Long startTimestamp) {
-        this.startTimestamp = startTimestamp;
-    }
-
-    public Long getStopTimestamp() {
-        return stopTimestamp;
-    }
-
-    public void setStopTimestamp(Long stopTimestamp) {
-        this.stopTimestamp = stopTimestamp;
-    }
-
-    public AuctionStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(AuctionStatus status) {
-        this.status = status;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public boolean isResultDeclared() {
-        return isResultDeclared;
-    }
-
-    public void setResultDeclared(boolean resultDeclared) {
-        isResultDeclared = resultDeclared;
-    }
-
-    public boolean isCancelled() {
-        return isCancelled;
-    }
-
-    public void setCancelled(boolean cancelled) {
-        isCancelled = cancelled;
-    }
-
-    public String getReasonForCancellation() {
-        return reasonForCancellation;
-    }
-
-    public void setReasonForCancellation(String reasonForCancellation) {
-        this.reasonForCancellation = reasonForCancellation;
-    }
-
-    public Long getTimeOfCancellation() {
-        return timeOfCancellation;
-    }
-
-    public void setTimeOfCancellation(Long timeOfCancellation) {
-        this.timeOfCancellation = timeOfCancellation;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public Long getCreatedTimestamp() {
-        return createdTimestamp;
-    }
-
-    public void setCreatedTimestamp(Long createdTimestamp) {
-        this.createdTimestamp = createdTimestamp;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof Auction))
-            return false;
-        Auction auction = (Auction) o;
-        return Objects.equals(auctionId, auction.auctionId) && Objects.equals(auctionName, auction.auctionName)
-                && Objects.equals(auctionDescription, auction.auctionDescription)
-                && Objects.equals(items, auction.items);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(auctionId, auctionName, auctionDescription, items);
-    }
-
-    @Override
-    public String toString() {
-        return "Auction{" + "auctionId='" + auctionId + '\'' + ", auctionName='" + auctionName + '\''
-                + ", auctionDescription='" + auctionDescription + '\'' + ", items=" + items + '}';
-    }
 }

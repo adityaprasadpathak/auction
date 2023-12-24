@@ -86,8 +86,7 @@ public class Utility {
 
     public static String generateUniqueAuctionId() {
         UUID uuid = UUID.randomUUID();
-        String auctionId = uuid.toString().replace("-", "");
-        return auctionId;
+        return uuid.toString().replace("-", "");
     }
 
     public static String generateUniqueItemId() {
@@ -203,5 +202,20 @@ public class Utility {
         LocalDate tomorrow = LocalDate.now().plusDays(plusDays);
         ZonedDateTime tomorrowSecAhead = ZonedDateTime.of(tomorrow, secondsAhead, ZoneId.systemDefault());
         return tomorrowSecAhead.toInstant().toEpochMilli();
+    }
+
+    public static long getTimestampsForTodayMidnight() {
+        return getTimestampsForToday(0, LocalTime.MIDNIGHT);
+    }
+
+    public static long getTimestampsForTodayEOD() {
+        LocalTime lastSecond = LocalTime.of(23, 59, 59, 999_999_999); // 11:59:59.999999999
+        return getTimestampsForToday(0, lastSecond);
+    }
+
+    public static long getTimestampsForToday(long plusDays, LocalTime secondsAhead) {
+        LocalDate today = LocalDate.now().plusDays(plusDays);
+        ZonedDateTime todaySecAhead = ZonedDateTime.of(today, secondsAhead, ZoneId.systemDefault());
+        return todaySecAhead.toInstant().toEpochMilli();
     }
 }
