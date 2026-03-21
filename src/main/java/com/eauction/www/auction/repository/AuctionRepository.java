@@ -1,6 +1,7 @@
 package com.eauction.www.auction.repository;
 
 import com.eauction.www.auction.dto.AuctionEntity;
+import com.eauction.www.auction.models.AuctionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,4 +19,10 @@ public interface AuctionRepository extends JpaRepository<AuctionEntity, String> 
 
     @Query("SELECT a FROM AuctionEntity a WHERE a.startTimestamp BETWEEN :currentTime AND :startTime")
     List<AuctionEntity> findAuctionsBetweenStartTimestamp(@Param("currentTime") Long currentTime, @Param("startTime") Long startTime);
+
+    List<AuctionEntity> findByStatusAndStopTimestampLessThan(AuctionStatus status, long timestamp);
+
+    List<AuctionEntity> findByStatusIsNullAndStartTimestampLessThanEqual(long timestamp);
+
+    List<AuctionEntity> findByStatus(AuctionStatus auctionStatus);
 }

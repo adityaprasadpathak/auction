@@ -3,6 +3,12 @@ package com.eauction.www.auction.filter;
 import com.eauction.www.auction.security.RequestContext;
 import com.eauction.www.auction.service.MyUserDetailsService;
 import com.eauction.www.auction.util.JwtUtil;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,55 +18,77 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
     @Autowired
-    MyUserDetailsService myUserDetailsService;
+    private MyUserDetailsService myUserDetailsService;
 
     @Autowired
-    JwtUtil jwtUtil;
+    private JwtUtil jwtUtil;
+
     @Autowired
-    RequestContext requestContext;
+    private RequestContext requestContext;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
-            FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
 
-        String username = null;
-        String jwt = null;
-        final String authorizationHeader = httpServletRequest.getHeader("Authorization");
-
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            jwt = authorizationHeader.substring(7);
-            username = jwtUtil.extractUsername(jwt);
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = myUserDetailsService.loadUserByUsername(username);
-            if (jwtUtil.validateToken(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                usernamePasswordAuthenticationToken
-                        .setDetails(new WebAuthenticationDetailsSource().buildDetails(httpServletRequest));
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+        String jwt = null;
+        String username = null;
+
+        final String authorizationHeader = request.getHeader("Authorization");
+
+        try {
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                jwt = authorizationHeader.substring(7);
+                username = jwtUtil.extractUsername(jwt);
             }
 
-            System.out.println(userDetails.getAuthorities().getClass());
-            requestContext.setUsername(userDetails.getUsername());
-            requestContext.setAdmin(
-                    !CollectionUtils.isEmpty(userDetails.getAuthorities()) ? userDetails.getAuthorities().stream()
-                            .filter(auth -> auth.toString().equals("ROLE_ADMIN")).findFirst().isPresent() : false);
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
+                UserDetails userDetails = myUserDetailsService.loadUserByUsername(username);
+
+                if (jwtUtil.validateToken(jwt, userDetails)) {
+
+                    UsernamePasswordAuthenticationToken authenticationToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+
+                    authenticationToken.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request)
+                    );
+
+                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+                    // ✅ Set RequestContext ONLY after successful auth
+                    requestContext.setUsername(userDetails.getUsername());
+
+                    boolean isAdmin = !CollectionUtils.isEmpty(userDetails.getAuthorities()) &&
+                            userDetails.getAuthorities().stream()
+                                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+                    requestContext.setAdmin(isAdmin);
+                }
+            }
+
+        } catch (Exception e) {
+            // ⚠️ Do NOT break request, just log
+            // Use logger in real app
+            System.err.println("JWT Filter Error: " + e.getMessage());
         }
 
-        filterChain.doFilter(httpServletRequest, httpServletResponse);
-
+        filterChain.doFilter(request, response);
     }
 }

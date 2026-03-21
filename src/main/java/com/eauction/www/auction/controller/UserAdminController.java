@@ -1,14 +1,19 @@
 package com.eauction.www.auction.controller;
 
 import com.eauction.www.auction.models.Auction;
+import com.eauction.www.auction.models.AuctionStatus;
+import com.eauction.www.auction.models.ResponseAuction;
 import com.eauction.www.auction.service.AuctionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * As this is not open controller, hence all Api's here in this controller needs AuthToken(JWT token) to make a call.
  * UserAdminController as name suggest, will contain common Api's which needs to be called by both user and Admin.
  */
+@CrossOrigin
 @RestController
 @RequestMapping("/useradmin")
 public class UserAdminController {
@@ -30,6 +35,35 @@ public class UserAdminController {
     @PostMapping(value = "/auction")
     public Auction createAuction(@RequestBody Auction auction) {
         return auctionService.createAuction(auction);
+    }
+
+    @GetMapping("/auctions")
+    public ResponseEntity<ResponseAuction> getAuctions(
+            @RequestParam(required = false) AuctionStatus auctionStatus,
+            Authentication authentication) {
+
+        String username = authentication.getName();
+        ResponseAuction responseAuction;
+        if (auctionStatus != null) {
+            responseAuction  = new ResponseAuction(auctionService.getAuctionsViaAuctionStatus(auctionStatus));
+        } else {
+            responseAuction = new ResponseAuction(auctionService.getAuctions());
+        }
+
+
+        return ResponseEntity.ok(responseAuction);
+    }
+
+    @GetMapping("/auctions/{auctionId}")
+    public ResponseEntity<ResponseAuction> getAuctions(
+            @PathVariable String auctionId,
+            Authentication authentication) {
+
+        String username = authentication.getName();
+
+        ResponseAuction responseAuction = new ResponseAuction(auctionService.getAuctionViaAuctionId(auctionId));
+
+        return ResponseEntity.ok(responseAuction);
     }
 
 }

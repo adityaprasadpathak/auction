@@ -1,47 +1,48 @@
 package com.eauction.www.auction.scheduler;
 
+import com.eauction.www.auction.dto.AuctionEntity;
 import com.eauction.www.auction.models.AuctionStatus;
 import com.eauction.www.auction.repository.AuctionRepository;
-import com.eauction.www.auction.task.StartAuction;
-import com.eauction.www.auction.service.AuctionService;
-import com.eauction.www.auction.util.Utility;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class StartAuctionScheduler {
 
-    @Autowired
-    AuctionService auctionService;
+    private final AuctionRepository auctionRepository;
 
-    @Autowired
-    AuctionRepository auctionRepository;
-    @Autowired
-    ThreadPoolTaskScheduler taskScheduler;
+    /**
+     * Scheduler to start auctions whose start time has arrived.
+     *
+     * Runs every 5 minutes.
+     */
+    @Scheduled(cron = "0 0/5 * * * ?")
+    public void startScheduledAuctions() {
 
-    //@Scheduled(cron = "0 59 23 * * ?") // Cron expression for 11:59:00 PM every day
-    @Scheduled(cron = "0 0/5 * * * ?") // Cron Run every 5 Minutes
-
-    public void runDailyTask() {
         System.out.println("StartAuctionScheduler Executed at " + Date.from(Instant.now()));
-/*        auctionService.getAuctions(Utility.getTimestampsForTomorrowMidnight(), Utility.getTimestampsForTomorrowEOD())
-        auctionService.getAuctions()
-                .parallelStream()
-                .filter(auction -> auction.getStatus() == null)
-                .forEach(auction -> auction.setStatus(AuctionStatus.IN_PROGRESS));*/
 
-        auctionRepository.findAll()
-                .parallelStream()
-                .filter(auctionEntity -> auctionEntity.getStatus() == null)
-                .forEach(auctionEntity -> {
-                    auctionEntity.setStatus(AuctionStatus.IN_PROGRESS);
-                    auctionRepository.save(auctionEntity);
-                });
-        //.forEach(auction -> taskScheduler.schedule(new StartAuction(auction,auctionService), Date.from(Instant.ofEpochMilli(auction.getStartTimestamp()))));
+        long currentTime = Instant.now().toEpochMilli();
+
+        // Fetch only auctions ready to start
+        List<AuctionEntity> auctionsToStart =
+                auctionRepository.findByStatusIsNullAndStartTimestampLessThanEqual(currentTime);
+
+        if (auctionsToStart.isEmpty()) {
+            return;
+        }
+
+        // Update status
+        auctionsToStart.forEach(auction ->
+                auction.setStatus(AuctionStatus.IN_PROGRESS)
+        );
+
+        // Bulk save
+        auctionRepository.saveAll(auctionsToStart);
     }
 }

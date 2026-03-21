@@ -1,14 +1,5 @@
 package com.eauction.www.auction.response.models;
 
-public class AuthenticateResponse {
+public record AuthenticateResponse(String jwt) {
 
-    private final String jwt;
-
-    public AuthenticateResponse(String jwt) {
-        this.jwt = jwt;
-    }
-
-    public String getJwt() {
-        return jwt;
-    }
 }

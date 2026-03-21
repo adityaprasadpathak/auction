@@ -5,84 +5,190 @@ import com.eauction.www.auction.models.RequestUserBid;
 import com.eauction.www.auction.models.ResponseAuction;
 import com.eauction.www.auction.models.ResponseUserBid;
 import com.eauction.www.auction.models.ServiceErrorCode;
-import com.eauction.www.auction.security.RequestContext;
 import com.eauction.www.auction.service.AuctionService;
 import com.eauction.www.auction.service.BiddingService;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * As this is not open controller, hence all Api's here in this controller needs AuthToken(JWT token) to make a call.
- * UserAuctionController as name suggest will contains Api's which needs to be called by user only.
+ * <h2>UserAuctionController</h2>
+ *
+ * <p>
+ * This controller contains APIs that are <b>NOT open</b> and therefore require a valid
+ * <b>JWT Authentication Token</b> to be accessed.
+ * </p>
+ *
+ * <p>
+ * As the name suggests, this controller exposes APIs intended for <b>authenticated users only</b>.
+ * All incoming requests are expected to be authenticated via Spring Security, and user details
+ * are extracted from the {@link Authentication} object.
+ * </p>
+ *
+ * <p>
+ * NOTE:
+ * <ul>
+ *     <li>Authentication is handled via JWT and populated in the Security Context by a filter.</li>
+ *     <li>User identity (username) is retrieved using {@code Authentication.getName()}.</li>
+ *     <li>No custom RequestContext is used; instead, Spring Security context is leveraged.</li>
+ * </ul>
+ * </p>
  */
+@CrossOrigin
 @RestController
 @RequestMapping("/users")
+@RequiredArgsConstructor
 public class UserAuctionController {
 
-    @Autowired
-    public AuctionService auctionService;
-
-    @Autowired
-    public RequestContext requestContext;
-
-    @Autowired
-    BiddingService biddingService;
+    private final AuctionService auctionService;
+    private final BiddingService biddingService;
 
     /**
-     * This Api will return List of Auctions created by the calling user, DESC sorted via auction start time.
+     * <h3>Get Auctions for Logged-in User</h3>
      *
-     * @param auctionId
-     *            : if auctionId is provided as a filter, then only one auction matching with that id will be returned.
+     * <p>
+     * This API returns auctions created by the currently authenticated user.
+     * The results are sorted in <b>descending order of auction start time</b>.
+     * </p>
      *
-     * @return ResponseAuction contains two properties 1. Auction 2. List<Auction> Auction will be populated if
-     *         AuctionId is provided and List<Auction> will be null. if auctionId is not provided, List<Auction>
-     *         properties will be populated, and Auction will be null.
+     * <p>
+     * Behavior:
+     * <ul>
+     *     <li>If <b>auctionId</b> is provided → returns only that specific auction.</li>
+     *     <li>If <b>auctionId</b> is NOT provided → returns a list of all auctions created by the user.</li>
+     * </ul>
+     * </p>
+     *
+     * <p>
+     * Response Structure:
+     * <ul>
+     *     <li>If auctionId is provided → {@code ResponseAuction.auction} is populated.</li>
+     *     <li>If auctionId is NOT provided → {@code ResponseAuction.auctions} list is populated.</li>
+     * </ul>
+     * </p>
+     *
+     * @param auctionId optional auction identifier to filter a specific auction
+     * @param authentication Spring Security authentication object containing logged-in user details
+     * @return ResponseEntity containing {@link ResponseAuction}
      */
-    @GetMapping(value = "/auctions")
-    public ResponseEntity<ResponseAuction> getAuctions(@RequestParam(required = false) String auctionId) {
+    @GetMapping("/auctions")
+    public ResponseEntity<ResponseAuction> getAuctions(
+            @RequestParam(required = false) String auctionId,
+            Authentication authentication) {
 
-        ResponseAuction responseAuction = auctionId != null
-                ? new ResponseAuction(auctionService.getAuctionViaIdAndUsername(auctionId, requestContext.getUsername()))
-                : new ResponseAuction(auctionService.getAuctions(requestContext.getUsername()));
+        String username = authentication.getName();
+
+        ResponseAuction responseAuction = (auctionId != null)
+                ? new ResponseAuction(
+                auctionService.getAuctionViaIdAndUsername(auctionId, username))
+                : new ResponseAuction(
+                auctionService.getAuctions(username));
+
         return ResponseEntity.ok(responseAuction);
     }
 
     /**
-     * This Api will used to bid againt an item of an Auction.
+     * <h3>Apply Bid on Auction Item</h3>
      *
-     * @param requestUserBid
-     *            : Input will contain auctionId, ItemId and userBid amount.
+     * <p>
+     * This API allows an authenticated user to place a bid on a specific item within an auction.
+     * </p>
      *
-     * @return ResponseUserBid will contain userBid amount and currentBid amount in the response. List<Bid> is not a
-     *         part of response of this Api and hence will not be populated
+     * <p>
+     * Input Requirements:
+     * <ul>
+     *     <li>Auction ID</li>
+     *     <li>Item ID</li>
+     *     <li>User's bid amount</li>
+     * </ul>
+     * </p>
+     *
+     * <p>
+     * Behavior:
+     * <ul>
+     *     <li>Validates whether the auction is currently <b>active</b>.</li>
+     *     <li>If active → bid is accepted and processed.</li>
+     *     <li>If not active → throws {@link AuctionServiceException}.</li>
+     * </ul>
+     * </p>
+     *
+     * <p>
+     * Response:
+     * <ul>
+     *     <li>Contains user's bid amount and current highest bid.</li>
+     *     <li>Does NOT include full bid history.</li>
+     * </ul>
+     * </p>
+     *
+     * <p>
+     * NOTE:
+     * <ul>
+     *     <li>Currently only logged-in users can bid for themselves.</li>
+     *     <li>Future enhancement: Admin can bid on behalf of another user.</li>
+     * </ul>
+     * </p>
+     *
+     * @param requestUserBid request payload containing auctionId, itemId and bid amount
+     * @param authentication Spring Security authentication object
+     * @return ResponseEntity containing {@link ResponseUserBid}
      */
-    @PostMapping(value = "/bid/auctions")
-    public ResponseEntity<ResponseUserBid> applyBid(@RequestBody RequestUserBid requestUserBid) {
-        // TODO: Admin can bid on behalf of an User.
-        if(validateAuctionStatus(requestUserBid.getAuctionId())) {
-            return ResponseEntity.ok(biddingService.applyBid(requestUserBid, requestContext.getUsername()));
+    @PostMapping("/bid/auctions")
+    public ResponseEntity<ResponseUserBid> applyBid(
+            @RequestBody RequestUserBid requestUserBid,
+            Authentication authentication) {
+
+        String username = authentication.getName();
+
+        if (auctionService.isAuctionActive(requestUserBid.getAuctionId())) {
+            return ResponseEntity.ok(
+                    biddingService.applyBid(requestUserBid, username)
+            );
         } else {
             throw new AuctionServiceException(ServiceErrorCode.AUCTION_NOT_ACTIVE);
         }
-
-    }
-
-    private boolean validateAuctionStatus(String auctionId) {
-        return auctionService.isAuctionActive(auctionId);
     }
 
     /**
-     * This Api is used to fetch list of bids made by a user on an auction(includes any item)
+     * <h3>Get User Bids for an Auction</h3>
      *
-     * @param auctionId
+     * <p>
+     * This API retrieves all bids placed by the currently authenticated user
+     * for a given auction (across all items in that auction).
+     * </p>
      *
-     * @return ResponseUserBid will contain List<Bid> which will be populated as response. userBid and currentBid will
-     *         be empty as they are not a part of response for this Api.
+     * <p>
+     * Behavior:
+     * <ul>
+     *     <li>Fetches all bids made by the user for the specified auction.</li>
+     *     <li>Includes bids across all items within the auction.</li>
+     * </ul>
+     * </p>
+     *
+     * <p>
+     * Response:
+     * <ul>
+     *     <li>Returns a list of bids.</li>
+     *     <li>{@code userBid} and {@code currentBid} fields are NOT populated.</li>
+     * </ul>
+     * </p>
+     *
+     * @param auctionId auction identifier
+     * @param authentication Spring Security authentication object
+     * @return ResponseEntity containing {@link ResponseUserBid}
      */
-    @GetMapping(value = "/bid/auctions/{auctionId}")
-    public ResponseEntity<ResponseUserBid> getUserBids(@PathVariable(required = true) String auctionId) {
-        return ResponseEntity.ok(new ResponseUserBid(biddingService.getUserBidsViaAuctionId(auctionId, requestContext.getUsername())));
-    }
+    @GetMapping("/bid/auctions/{auctionId}")
+    public ResponseEntity<ResponseUserBid> getUserBids(
+            @PathVariable String auctionId,
+            Authentication authentication) {
 
+        String username = authentication.getName();
+
+        return ResponseEntity.ok(
+                new ResponseUserBid(
+                        biddingService.getUserBidsViaAuctionId(auctionId, username)
+                )
+        );
+    }
 }

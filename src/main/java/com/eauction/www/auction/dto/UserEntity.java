@@ -1,6 +1,6 @@
 package com.eauction.www.auction.dto;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users")

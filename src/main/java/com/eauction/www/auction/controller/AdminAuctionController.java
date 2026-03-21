@@ -11,6 +11,7 @@ import java.util.List;
  * As this is not open controller, hence all Api's here in this controller needs AuthToken(JWT token) to make a call.
  * AdminAuctionController as name suggest will contains Api's which needs to be called by Admin only.
  */
+@CrossOrigin
 @RestController
 @RequestMapping("/admins")
 public class AdminAuctionController {

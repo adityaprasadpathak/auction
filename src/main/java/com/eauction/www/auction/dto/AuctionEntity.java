@@ -3,12 +3,11 @@ package com.eauction.www.auction.dto;
 import com.eauction.www.auction.models.Auction;
 import com.eauction.www.auction.models.AuctionStatus;
 import com.eauction.www.auction.util.Utility;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.*;
 import java.util.List;
 import java.util.stream.Collectors;
 

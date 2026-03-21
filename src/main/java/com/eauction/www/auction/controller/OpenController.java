@@ -7,117 +7,105 @@ import com.eauction.www.auction.models.*;
 import com.eauction.www.auction.repository.UserRepository;
 import com.eauction.www.auction.request.models.AuthenticateRequest;
 import com.eauction.www.auction.response.models.AuthenticateResponse;
-import com.eauction.www.auction.security.RequestContext;
 import com.eauction.www.auction.service.AuctionService;
 import com.eauction.www.auction.service.BiddingService;
 import com.eauction.www.auction.service.MyUserDetailsService;
 import com.eauction.www.auction.util.JwtUtil;
 import com.eauction.www.auction.util.Utility;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.LockedException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-/**
- * This controller contains Api's which needs no AuthToken(JWT token) to call.
- * Therefore, they are termed as open Api's, and hence controller name.
- */
+@CrossOrigin
 @RestController
+@RequiredArgsConstructor
+@Slf4j
 public class OpenController {
 
-    @Autowired
-    AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
+    private final MyUserDetailsService myUserDetailsService;
+    private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final AuctionService auctionService;
+    private final BiddingService biddingService;
 
-    @Autowired
-    MyUserDetailsService myUserDetailsService;
-
-    @Autowired
-    JwtUtil jwtUtil;
-
-    @Autowired
-    UserRepository userRepository;
-
-    @Autowired
-    PasswordEncoder passwordEncoder;
-
-    @Autowired
-    RequestContext requestContext;
-
-
-    @Autowired
-    AuctionService auctionService;
-
-    @Autowired
-    BiddingService biddingService;
-
-    /**
-     * Test API to get Sample Auction response. Will be deleting it after
-     *
-     * @return
-     */
-    @Deprecated
     @GetMapping("/auctions")
     public Auction getAuctions() {
         return Utility.createSampleAuction();
     }
 
-    /**
-     * This Api is used by public to signUp in eAuction. Anyone can use this API to register them self, general signup
-     * will always create a user(not Admin).
-     * <p>
-     * <p>
-     * Same API can be used by an Admin to create User(or signup on behalf of an user), and later his username/password
-     * can be given to him. Remember an Admin can create an AdminUser too. if Admin going to use this Api to create user
-     * or admin, he is supposed to pass AuthToken (JWT token), otherwise call considered as a normal user signup.
-     *
-     * @param userRegistration
-     *
-     * @return
-     */
     @PostMapping("/registration")
-    public String registration(@RequestBody UserRegistration userRegistration) {
+    public ResponseEntity<String> registration(
+            @RequestBody UserRegistration userRegistration,
+            Authentication authentication) {
 
-        UserEntity userEntity = userRepository.save(Utility.convertToUserEntity(userRegistration, passwordEncoder,
-                Boolean.FALSE, requestContext.getUsername()));
-        if (userEntity != null) {
-            return userEntity.getUsername();
-        } else {
-            throw new RuntimeException("Unable To Register");
+        try {
+            String createdBy = null;
+
+            if (authentication != null && authentication.isAuthenticated()
+                    && !"anonymousUser".equals(authentication.getPrincipal())) {
+                createdBy = authentication.getName();
+            }
+
+            UserEntity userEntity = userRepository.save(
+                    Utility.convertToUserEntity(
+                            userRegistration,
+                            passwordEncoder,
+                            false,
+                            createdBy
+                    )
+            );
+
+            return ResponseEntity.ok(userEntity.getUsername());
+
+        } catch (DataIntegrityViolationException dive) {
+            log.warn("Attempt to register with existing username: {}", userRegistration.getUserName());
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Username already exists");
         }
-
+        catch (Exception e) {
+            log.error("Error during user registration: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Unable to register user");
+        }
     }
 
-    /**
-     * This Api is to login in eAuction (via username and password) A successful login will return a JWT token valid for
-     * 10 days. this token can be used to call subsequent Api's
-     *
-     * @param authenticateRequest
-     *
-     * @return
-     *
-     * @throws Exception
-     */
     @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticateResponse> authenticate(@RequestBody AuthenticateRequest authenticateRequest)
-            throws Exception {
+    public ResponseEntity<?> authenticate(@RequestBody AuthenticateRequest request) {
+
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                    authenticateRequest.getUsername(), authenticateRequest.getPassword()));
-        } catch (BadCredentialsException bce) {
-            throw new RuntimeException("Bad Credential", bce);
-        } catch (LockedException le) {
-            throw new RuntimeException("User Account Is Locked.Please contact administrator", le);
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword()
+                    )
+            );
+
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid username or password");
+
+        } catch (LockedException e) {
+            return ResponseEntity.status(HttpStatus.LOCKED)
+                    .body("User account is locked");
         }
 
-        UserDetails userDetails = myUserDetailsService.loadUserByUsername(authenticateRequest.getUsername());
+        UserDetails userDetails =
+                myUserDetailsService.loadUserByUsername(request.getUsername());
+
         String jwtToken = jwtUtil.generateToken(userDetails);
 
         return ResponseEntity.ok(new AuthenticateResponse(jwtToken));
@@ -126,30 +114,33 @@ public class OpenController {
     @GetMapping("/auction/{auctionId}/result")
     public List<Result> getResult(@PathVariable String auctionId) {
 
-        List<Result> auctionResult = new ArrayList<>();
-        if (auctionService.isAuctionFinished(auctionId)) {
-             List<Item> auctionItems = auctionService.getItemsforAuction(auctionId);
-             auctionItems.parallelStream().forEach(item -> {
-                 BidEntity bidEntity = biddingService.getCurrentHighestBidder(auctionId,item.getItemId());
-                 if (null != bidEntity) {
-                     Result result = Result.builder()
-                             .itemId(bidEntity.getItemId())
-                             .bidder(bidEntity.getUsername())
-                             .bidAmount(bidEntity.getBid())
-                             .build();
-                     auctionResult.add(result);
-                 }
-             });
-             return auctionResult;
-
-        } else {
+        if (!auctionService.isAuctionFinished(auctionId)) {
             throw new AuctionServiceException(
-                    "Auction is Still Active, result will be declared once Auction is Finished"
-                    ,ServiceErrorCode.AUCTION_NOT_FINISHED);
+                    "Auction is still active",
+                    ServiceErrorCode.AUCTION_NOT_FINISHED
+            );
         }
 
+        List<Item> auctionItems =
+                auctionService.getItemsForAuction(auctionId);
 
-        // if Auction is finished, fetch top 3 bids
+        return auctionItems.stream()
+                .map(item -> {
+                    BidEntity bidEntity =
+                            biddingService.getCurrentHighestBidder(
+                                    auctionId,
+                                    item.getItemId()
+                            );
+
+                    if (bidEntity == null) return null;
+
+                    return Result.builder()
+                            .itemId(bidEntity.getItemId())
+                            .bidder(bidEntity.getUsername())
+                            .bidAmount(bidEntity.getBid())
+                            .build();
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
-
 }
