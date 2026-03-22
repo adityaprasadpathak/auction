@@ -1,17 +1,18 @@
 package com.eauction.www.auction.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import lombok.*;
 
 import java.util.List;
 
 @Builder
 @AllArgsConstructor
+@Data
 public class ResponseUserBid {
 
     private Integer yourBid;
     private Integer currentBid;
-    List<Bid> userBids;
+    private List<Bid> userBids;
+    private Bid latestBid;
 
     public ResponseUserBid() {
     }
@@ -20,27 +21,8 @@ public class ResponseUserBid {
         this.userBids = userBids;
     }
 
-    public Integer getYourBid() {
-        return yourBid;
+    public ResponseUserBid(Bid latestBid) {
+        this.latestBid = latestBid;
     }
 
-    public void setYourBid(Integer yourBid) {
-        this.yourBid = yourBid;
-    }
-
-    public Integer getCurrentBid() {
-        return currentBid;
-    }
-
-    public void setCurrentBid(Integer currentBid) {
-        this.currentBid = currentBid;
-    }
-
-    public List<Bid> getUserBids() {
-        return userBids;
-    }
-
-    public void setUserBids(List<Bid> userBids) {
-        this.userBids = userBids;
-    }
 }

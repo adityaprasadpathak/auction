@@ -1,7 +1,9 @@
 package com.eauction.www.auction.util;
 
 import com.eauction.www.auction.dto.AuctionEntity;
+import com.eauction.www.auction.dto.BidEntity;
 import com.eauction.www.auction.models.Auction;
+import com.eauction.www.auction.models.Bid;
 import com.google.gson.Gson;
 
 import java.util.List;
@@ -20,6 +22,16 @@ public final class ConverterUtility {
         return auctions.stream()
                 .map(AuctionEntity::new) // This will use the copy constructor
                 .collect(Collectors.toList());
+    }
+
+    public static List<Bid> convertToBidList(List<BidEntity> bidEntities) {
+        return bidEntities.stream()
+                .map(Bid::new) // This will use the copy constructor
+                .collect(Collectors.toList());
+    }
+
+    public static Bid convertToBid(BidEntity bidEntity) {
+        return new Bid(bidEntity); // This will use the copy constructor
     }
 
 

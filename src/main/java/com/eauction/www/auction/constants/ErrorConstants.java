@@ -9,4 +9,14 @@ public final class ErrorConstants {
 
     public static final String BID_LESS_CURR_VAL = "Requested Bid is less than the current value";
     public static final String AUCTION_NOT_ACTIVE = "Auction is not Active";
+
+    public static final String ITEM_DOESNT_BELONG_TO_AUCTION = "Item doesn't belong to the Auction";
+
+     private ErrorConstants() {
+         // private constructor to prevent instantiation
+     }
+
+
+
+
 }

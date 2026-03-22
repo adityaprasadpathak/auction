@@ -18,8 +18,31 @@ public interface BidRepository extends JpaRepository<BidEntity, String> {
     @Query("SELECT b FROM BidEntity b WHERE b.itemId = :itemId AND b.auctionId = :auctionId AND b.bid = (SELECT MAX(b2.bid) FROM BidEntity b2 WHERE b2.itemId = :itemId AND b2.auctionId = :auctionId)")
     Optional<BidEntity> findHighestBidByItemIdAndAuctionId(@Param("itemId") String itemId, @Param("auctionId") String auctionId);
 
+    @Query("""
+    SELECT b FROM BidEntity b 
+    WHERE b.itemId = :itemId 
+      AND b.auctionId = :auctionId 
+      AND b.username = :username
+      AND b.bid = (
+          SELECT MAX(b2.bid) 
+          FROM BidEntity b2 
+          WHERE b2.itemId = :itemId 
+            AND b2.auctionId = :auctionId
+            AND b2.username = :username
+      )
+""")
+    Optional<BidEntity> findHighestBidByItemIdAndAuctionIdAndUsername(
+            @Param("itemId") String itemId,
+            @Param("auctionId") String auctionId,
+            @Param("username") String username
+    );
+
     List<BidEntity> findTop3ByAuctionIdAndItemIdOrderByBidDesc(String auctionId, String itemId);
 
+
+    List<BidEntity> findBidsByItemIdAndAuctionIdAndUsername(String itemId, String auctionId, String username);
+
+    List<BidEntity> findBidsByItemIdAndAuctionId(String itemId, String auctionId);
 
 
 }

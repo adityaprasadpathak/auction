@@ -7,6 +7,7 @@ import com.eauction.www.auction.exception.handler.BidServiceException;
 import com.eauction.www.auction.models.*;
 import com.eauction.www.auction.repository.BidRepository;
 import com.eauction.www.auction.security.RequestContext;
+import com.eauction.www.auction.util.ConverterUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -124,5 +125,34 @@ public class BiddingService {
     public List<Bid> getUserBidsViaAuctionId(String auctionId, String username) {
 
         return fakeDB.getUserBidsViaAuctionId(auctionId, username);
+    }
+
+    public List<Bid> getUserBidsViaAuctionIdAndItemIdAndUsername(String auctionId, String itemId, String username) {
+        return ConverterUtility.convertToBidList(bidRepository.findBidsByItemIdAndAuctionIdAndUsername(itemId, auctionId, username));
+    }
+
+    public List<Bid> getUserBidsViaAuctionIdAndItemId(String auctionId, String itemId) {
+        return ConverterUtility.convertToBidList(bidRepository.findBidsByItemIdAndAuctionId(itemId, auctionId));
+    }
+
+    public Bid getLatestBidsViaAuctionIdAndItemId(String auctionId, String itemId) {
+        Optional<BidEntity> highestBidSoFar = bidRepository.findHighestBidByItemIdAndAuctionId(itemId, auctionId);
+        BidEntity bidEntity = highestBidSoFar.orElse(null);
+        Bid bid = ConverterUtility.convertToBid(bidEntity);
+        return bid;
+    }
+
+    public Bid getLatestBidsViaAuctionIdAndItemIdAndUsernamme(String auctionId, String itemId, String username) {
+        Optional<BidEntity> highestBidSoFar = bidRepository.findHighestBidByItemIdAndAuctionIdAndUsername(itemId, auctionId, username);
+        BidEntity bidEntity = highestBidSoFar.orElse(null);
+        Bid bid = ConverterUtility.convertToBid(bidEntity);
+        return bid;
+    }
+
+    public Bid getLatestBidsViaAuctionIdAndItemIdAndUsername(String auctionId, String itemId, String username) {
+        Optional<BidEntity> highestBidSoFar = bidRepository.findHighestBidByItemIdAndAuctionIdAndUsername(itemId, auctionId, username);
+        BidEntity bidEntity = highestBidSoFar.orElse(null);
+        Bid bid = ConverterUtility.convertToBid(bidEntity);
+        return bid;
     }
 }

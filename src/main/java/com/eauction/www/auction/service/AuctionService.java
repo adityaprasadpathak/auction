@@ -115,4 +115,18 @@ public class AuctionService {
     public List<Auction> getAuctionsViaAuctionStatus(AuctionStatus auctionStatus) {
         return ConverterUtility.convertToAuctionList(auctionRepository.findByStatus(auctionStatus));
     }
+
+    public boolean deleteAuction(String auctionId, String username) {
+        Auction auction = getAuctionViaIdAndUsername(auctionId, username);
+        if (null != auction) {
+            if (AuctionStatus.UPCOMING != auction.getStatus()) {
+                throw new AuctionServiceException("Only upcoming auctions can be deleted", ServiceErrorCode.AUCTION_NOT_UPCOMING);
+
+            }
+            auctionRepository.deleteById(auction.getAuctionId());
+            return true;
+        } else {
+            throw new AuctionServiceException("Invalid AuctionId or user is not the owner of the auction", ServiceErrorCode.INVALID_AUCTION_ID);
+        }
+    }
 }

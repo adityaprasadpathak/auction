@@ -1,10 +1,7 @@
 package com.eauction.www.auction.controller;
 
 import com.eauction.www.auction.exception.AuctionServiceException;
-import com.eauction.www.auction.models.RequestUserBid;
-import com.eauction.www.auction.models.ResponseAuction;
-import com.eauction.www.auction.models.ResponseUserBid;
-import com.eauction.www.auction.models.ServiceErrorCode;
+import com.eauction.www.auction.models.*;
 import com.eauction.www.auction.service.AuctionService;
 import com.eauction.www.auction.service.BiddingService;
 
@@ -12,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * <h2>UserAuctionController</h2>
@@ -142,9 +142,16 @@ public class UserAuctionController {
         String username = authentication.getName();
 
         if (auctionService.isAuctionActive(requestUserBid.getAuctionId())) {
-            return ResponseEntity.ok(
-                    biddingService.applyBid(requestUserBid, username)
-            );
+            if (!Objects.equals(username, auctionService.getAuctionViaId(requestUserBid.getAuctionId()).getUsername())) {
+                return ResponseEntity.ok(
+                        biddingService.applyBid(requestUserBid, username));
+            } else {
+                throw new AuctionServiceException(
+                        "Auction owners cannot bid on their own auctions",
+                        ServiceErrorCode.BIDDER_SAME_AS_OWNER
+                );
+            }
+
         } else {
             throw new AuctionServiceException(ServiceErrorCode.AUCTION_NOT_ACTIVE);
         }
@@ -178,17 +185,33 @@ public class UserAuctionController {
      * @param authentication Spring Security authentication object
      * @return ResponseEntity containing {@link ResponseUserBid}
      */
-    @GetMapping("/bid/auctions/{auctionId}")
+    @GetMapping("/bid/auctions/{auctionId}/items/{itemId}")
     public ResponseEntity<ResponseUserBid> getUserBids(
+            @PathVariable String auctionId,
+            @PathVariable String itemId,
+            Authentication authentication) {
+
+        String username = authentication.getName();
+        List<Bid> userBids = biddingService.getUserBidsViaAuctionIdAndItemIdAndUsername(auctionId, itemId, username);
+        ResponseUserBid responseUserBid = new ResponseUserBid(userBids);
+        responseUserBid.setCurrentBid(biddingService.getLatestBidsViaAuctionIdAndItemId(auctionId, itemId).getBid());
+        responseUserBid.setYourBid(biddingService.getLatestBidsViaAuctionIdAndItemIdAndUsername(auctionId, itemId, username).getBid());
+
+        return ResponseEntity.ok(responseUserBid);
+    }
+
+    @DeleteMapping("/auctions/{auctionId}")
+    public ResponseEntity<String> deleteAuction(
             @PathVariable String auctionId,
             Authentication authentication) {
 
         String username = authentication.getName();
 
-        return ResponseEntity.ok(
-                new ResponseUserBid(
-                        biddingService.getUserBidsViaAuctionId(auctionId, username)
-                )
-        );
-    }
+        if (auctionService.deleteAuction(auctionId, username)) {
+            return ResponseEntity.ok("Auction deleted successfully");
+        } else {
+            return ResponseEntity.status(403)
+                    .body("You are not authorized to delete this auction or it does not exist");
+        }
+        }
 }

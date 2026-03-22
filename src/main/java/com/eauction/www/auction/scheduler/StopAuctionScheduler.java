@@ -4,8 +4,10 @@ import com.eauction.www.auction.dto.AuctionEntity;
 import com.eauction.www.auction.models.AuctionStatus;
 import com.eauction.www.auction.repository.AuctionRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Date;
@@ -13,6 +15,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class StopAuctionScheduler {
 
     private final AuctionRepository auctionRepository;
@@ -23,29 +26,13 @@ public class StopAuctionScheduler {
      * Runs every 20 minutes.
      */
     @Scheduled(cron = "0 */20 * * * ?")
+    @Transactional
     public void stopExpiredAuctions() {
 
-        System.out.println("StopAuctionScheduler Executed at " + Date.from(Instant.now()));
+        long now = Instant.now().toEpochMilli();
 
-        long currentTime = Instant.now().toEpochMilli();
+        int updated = auctionRepository.stopExpiredAuctions(now);
 
-        // Fetch only active auctions which are expired
-        List<AuctionEntity> expiredAuctions =
-                auctionRepository.findByStatusAndStopTimestampLessThan(
-                        AuctionStatus.IN_PROGRESS,
-                        currentTime
-                );
-
-        if (expiredAuctions.isEmpty()) {
-            return;
-        }
-
-        // Update status
-        expiredAuctions.forEach(auction ->
-                auction.setStatus(AuctionStatus.FINISHED)
-        );
-
-        // Bulk save
-        auctionRepository.saveAll(expiredAuctions);
+        log.info("Stopped {} auctions", updated);
     }
 }

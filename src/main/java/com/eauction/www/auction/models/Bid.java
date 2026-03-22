@@ -1,7 +1,11 @@
 package com.eauction.www.auction.models;
 
 import com.eauction.www.auction.dto.BidEntity;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 public class Bid {
 
     public Bid(BidEntity bidEntity) {
@@ -10,6 +14,8 @@ public class Bid {
         this.bidTime = bidEntity.getBidTime();
         this.bidValueAtThatTime = bidEntity.getBidValueAtThatTime();
         this.username = bidEntity.getUsername();
+        this.bid = bidEntity.getBid();
+        this.bidId = bidEntity.getId();
 
     }
 
@@ -27,59 +33,4 @@ public class Bid {
         this.bidId = bidId;
     }
 
-    public String getAuctionId() {
-        return auctionId;
-    }
-
-    public void setAuctionId(String auctionId) {
-        this.auctionId = auctionId;
-    }
-
-    public String getItemId() {
-        return itemId;
-    }
-
-    public void setItemId(String itemId) {
-        this.itemId = itemId;
-    }
-
-    public Integer getBid() {
-        return bid;
-    }
-
-    public void setBid(Integer bid) {
-        this.bid = bid;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public Long getBidTime() {
-        return bidTime;
-    }
-
-    public void setBidTime(Long bidTime) {
-        this.bidTime = bidTime;
-    }
-
-    public String getBidId() {
-        return bidId;
-    }
-
-    public void setBidId(String bidId) {
-        this.bidId = bidId;
-    }
-
-    public Integer getBidValueAtThatTime() {
-        return bidValueAtThatTime;
-    }
-
-    public void setBidValueAtThatTime(Integer bidValueAtThatTime) {
-        this.bidValueAtThatTime = bidValueAtThatTime;
-    }
 }
