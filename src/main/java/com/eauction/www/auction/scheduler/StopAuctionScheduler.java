@@ -25,9 +25,10 @@ public class StopAuctionScheduler {
      *
      * Runs every 20 minutes.
      */
-    @Scheduled(cron = "0 */20 * * * ?")
+    //@Scheduled(cron = "0 */20 * * * ?")
+    @Scheduled(fixedDelay = 30000)
     @Transactional
-    public void stopExpiredAuctions() {
+    public synchronized void stopExpiredAuctions() {
 
         long now = Instant.now().toEpochMilli();
 

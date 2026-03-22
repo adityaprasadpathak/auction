@@ -23,11 +23,14 @@ public interface AuctionRepository extends JpaRepository<AuctionEntity, String> 
 
     List<AuctionEntity> findByStatusAndStopTimestampLessThan(AuctionStatus status, long timestamp);
 
-    List<AuctionEntity> findByStatusIsNullAndStartTimestampLessThanEqual(long timestamp);
+    List<AuctionEntity> findByStatusAndStartTimestampLessThanEqual(
+            AuctionStatus status,
+            long startTimestamp
+    );
 
     List<AuctionEntity> findByStatus(AuctionStatus auctionStatus);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
     UPDATE AuctionEntity a 
     SET a.status = 'FINISHED' 
@@ -35,4 +38,14 @@ public interface AuctionRepository extends JpaRepository<AuctionEntity, String> 
       AND a.stopTimestamp < :now
 """)
     int stopExpiredAuctions(@Param("now") long now);
+
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+    UPDATE AuctionEntity a
+    SET a.status = 'IN_PROGRESS'
+    WHERE a.status = 'UPCOMING'
+      AND a.startTimestamp <= :now
+""")
+    int startEligibleAuctions(@Param("now") long now);
 }
