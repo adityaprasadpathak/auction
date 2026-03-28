@@ -1,11 +1,19 @@
 package com.eauction.www.auction.models;
 
+import com.eauction.www.auction.dto.UserEntity;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
+@Setter
+@NoArgsConstructor
 public class MyUserDetails implements UserDetails {
 
     private String password;
@@ -16,28 +24,15 @@ public class MyUserDetails implements UserDetails {
     private boolean enabled;
     private List<GrantedAuthority> authorities;
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setAccountNonExpired(boolean accountNonExpired) {
-        this.accountNonExpired = accountNonExpired;
-    }
-
-    public void setAccountNonLocked(boolean accountNonLocked) {
-        this.accountNonLocked = accountNonLocked;
-    }
-
-    public void setCredentialsNonExpired(boolean credentialsNonExpired) {
-        this.credentialsNonExpired = credentialsNonExpired;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+    public MyUserDetails(UserEntity userEntity) {
+        this.setAccountNonExpired(userEntity.isActive());
+        this.setAccountNonLocked(userEntity.isActive());
+        this.setCredentialsNonExpired(userEntity.isActive());
+        this.setEnabled(userEntity.isActive());
+        this.setPassword(userEntity.getPassword());
+        this.setUsername(userEntity.getUsername());
+        this.setAuthorities(Arrays.stream(userEntity.getRoles().split(",")).map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -75,7 +70,4 @@ public class MyUserDetails implements UserDetails {
         return enabled;
     }
 
-    public void setAuthorities(List<GrantedAuthority> authorities) {
-        this.authorities = authorities;
-    }
 }

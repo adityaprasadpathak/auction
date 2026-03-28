@@ -2,7 +2,7 @@ package com.eauction.www.auction.exception.handler;
 
 import com.eauction.www.auction.models.ServiceErrorCode;
 
-public class BidServiceException extends RuntimeException{
+public class BidServiceException extends RuntimeException {
 
     private ServiceErrorCode serviceErrorCode;
 

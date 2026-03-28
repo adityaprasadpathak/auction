@@ -38,10 +38,10 @@ public class BidEntity {
     private String itemId;
 
     @Column(name = "bid")
-    private Integer bid;
+    private Double bid;
 
     @Column(name = "bid_value_at_that_time")
-    private Integer bidValueAtThatTime;
+    private Double bidValueAtThatTime;
 
     @Column(name = "username")
     private String username;

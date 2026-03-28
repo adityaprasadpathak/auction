@@ -12,5 +12,5 @@ public class Result {
     private String itemId;
     private String bidder;
 
-    private Integer bidAmount;
+    private Double bidAmount;
 }

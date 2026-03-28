@@ -1,15 +1,23 @@
 package com.eauction.www.auction.models;
 
 import com.eauction.www.auction.dto.ItemEntity;
+import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Objects;
-
+@Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Item {
 
     public Item(ItemEntity itemEntity) {
-        this.auctionId = itemEntity.getAuctionEntity().getAuctionId();
+        // Safe check for lazy-loaded or null entities
+        if (itemEntity.getAuctionEntity() != null) {
+            this.auctionId = itemEntity.getAuctionEntity().getAuctionId();
+        }
         this.itemDescription = itemEntity.getItemDescription();
         this.itemName = itemEntity.getItemName();
         this.itemId = itemEntity.getItemId();
@@ -17,82 +25,24 @@ public class Item {
         this.itemStartPrice = itemEntity.getItemStartPrice();
     }
 
-        private String itemId;
-        private String itemName;
-        private String itemDescription;
-        private Double itemStartPrice;
-        private Integer itemCount;
-        private String auctionId;
+    private String itemId;
 
-    public String getItemId() {
-        return itemId;
-    }
+    @NotBlank(message = "Item name is required")
+    @Size(min = 2, max = 100, message = "Item name must be between 2 and 100 characters")
+    private String itemName;
 
-    public void setItemId(String itemId) {
-        this.itemId = itemId;
-    }
+    @NotBlank(message = "Item description is required")
+    @Size(max = 1000, message = "Description cannot exceed 1000 characters")
+    private String itemDescription;
 
-    public String getItemName() {
-        return itemName;
-    }
+    @NotNull(message = "Starting price is required")
+    @DecimalMin(value = "0.01", message = "Starting price must be at least 0.01")
+    private Double itemStartPrice;
 
-    public void setItemName(String itemName) {
-        this.itemName = itemName;
-    }
+    @NotNull(message = "Item count is required")
+    @Min(value = 1, message = "Item count must be at least 1")
+    @Max(value = 1000, message = "You cannot auction more than 1000 units of a single item")
+    private Integer itemCount;
 
-    public String getItemDescription() {
-        return itemDescription;
-    }
-
-    public void setItemDescription(String itemDescription) {
-        this.itemDescription = itemDescription;
-    }
-
-    public Double getItemStartPrice() {
-        return itemStartPrice;
-    }
-
-    public void setItemStartPrice(Double itemStartPrice) {
-        this.itemStartPrice = itemStartPrice;
-    }
-
-    public Integer getItemCount() {
-        return itemCount;
-    }
-
-    public void setItemCount(Integer itemCount) {
-        this.itemCount = itemCount;
-    }
-
-    public String getAuctionId() {
-        return auctionId;
-    }
-
-    public void setAuctionId(String auctionId) {
-        this.auctionId = auctionId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof Item))
-            return false;
-        Item item = (Item) o;
-        return Objects.equals(itemId, item.itemId) && Objects.equals(itemName, item.itemName)
-                && Objects.equals(itemDescription, item.itemDescription)
-                && Objects.equals(itemStartPrice, item.itemStartPrice) && Objects.equals(itemCount, item.itemCount);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(itemId, itemName, itemDescription, itemStartPrice, itemCount);
-    }
-
-    @Override
-    public String toString() {
-        return "Item{" + "ItemId='" + itemId + '\'' + ", ItemName='" + itemName + '\'' + ", ItemDescription='"
-                + itemDescription + '\'' + ", ItemStartPrice='" + itemStartPrice + '\'' + ", itemCount=" + itemCount
-                + '}';
-    }
+    private String auctionId;
 }

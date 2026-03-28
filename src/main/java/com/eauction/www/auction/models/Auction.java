@@ -1,16 +1,19 @@
 package com.eauction.www.auction.models;
 
 import com.eauction.www.auction.dto.AuctionEntity;
+import com.eauction.www.auction.validator.annotation.ValidAuctionDuration;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ValidAuctionDuration
 public class Auction {
 
     /**
@@ -34,22 +37,45 @@ public class Auction {
         this.username = auctionEntity.getUsername();
         this.createdTimestamp = auctionEntity.getCreatedTimestamp();
         this.status = auctionEntity.getStatus();
-        this.items = auctionEntity.getItems().stream().map(Item::new).collect(Collectors.toList());
+        this.items = auctionEntity.getItems().stream().map(Item::new).toList();
+        this.isTemporarilyStopped = auctionEntity.isTemporarilyStopped();
     }
 
 
+    @NotBlank(message = "Username is required")
     private String username;
+
     private String createdBy;
+
     private String auctionId;
+
+    @NotBlank(message = "Auction name cannot be empty")
+    @Size(min = 3, max = 100, message = "Auction name must be between 3 and 100 characters")
     private String auctionName;
+
+    @Size(max = 500, message = "Description is too long")
     private String auctionDescription;
+
+    @NotEmpty(message = "An auction must have at least one item")
+    @Max(value = 5, message = "An auction cannot have more than 5 items")
+    @Valid
     private List<Item> items;
+
+    @NotNull(message = "Start time is required")
+    @Positive(message = "Start timestamp must be a valid positive number")
     private Long startTimestamp;
+
+    @NotNull(message = "Stop time is required")
+    @Positive(message = "Stop timestamp must be a valid positive number")
     private Long stopTimestamp;
+
     private Long createdTimestamp;
+
     private AuctionStatus status;
+
     private boolean isResultDeclared;
     private boolean isCancelled;
     private String reasonForCancellation;
     private Long timeOfCancellation;
+    private boolean isTemporarilyStopped;
 }

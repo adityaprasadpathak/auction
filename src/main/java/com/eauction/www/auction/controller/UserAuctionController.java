@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -132,19 +131,17 @@ public class UserAuctionController {
      *
      * @param requestUserBid request payload containing auctionId, itemId and bid amount
      * @param authentication Spring Security authentication object
-     * @return ResponseEntity containing {@link ResponseUserBid}
+     * @return ResponseEntity containing {@link BidResponse}
      */
     @PostMapping("/bid/auctions")
-    public ResponseEntity<ResponseUserBid> applyBid(
+    public ResponseEntity<BidResponse> applyBid(
             @RequestBody RequestUserBid requestUserBid,
             Authentication authentication) {
 
-        String username = authentication.getName();
-
         if (auctionService.isAuctionActive(requestUserBid.getAuctionId())) {
-            if (!Objects.equals(username, auctionService.getAuctionViaId(requestUserBid.getAuctionId()).getUsername())) {
+            if (!Objects.equals(authentication.getName(), auctionService.getAuctionViaId(requestUserBid.getAuctionId()).getUsername())) {
                 return ResponseEntity.ok(
-                        biddingService.applyBid(requestUserBid, username));
+                        biddingService.applyBid(requestUserBid, authentication));
             } else {
                 throw new AuctionServiceException(
                         "Auction owners cannot bid on their own auctions",
@@ -157,57 +154,12 @@ public class UserAuctionController {
         }
     }
 
-    /**
-     * <h3>Get User Bids for an Auction</h3>
-     *
-     * <p>
-     * This API retrieves all bids placed by the currently authenticated user
-     * for a given auction (across all items in that auction).
-     * </p>
-     *
-     * <p>
-     * Behavior:
-     * <ul>
-     *     <li>Fetches all bids made by the user for the specified auction.</li>
-     *     <li>Includes bids across all items within the auction.</li>
-     * </ul>
-     * </p>
-     *
-     * <p>
-     * Response:
-     * <ul>
-     *     <li>Returns a list of bids.</li>
-     *     <li>{@code userBid} and {@code currentBid} fields are NOT populated.</li>
-     * </ul>
-     * </p>
-     *
-     * @param auctionId auction identifier
-     * @param authentication Spring Security authentication object
-     * @return ResponseEntity containing {@link ResponseUserBid}
-     */
-    @GetMapping("/bid/auctions/{auctionId}/items/{itemId}")
-    public ResponseEntity<ResponseUserBid> getUserBids(
-            @PathVariable String auctionId,
-            @PathVariable String itemId,
-            Authentication authentication) {
-
-        String username = authentication.getName();
-        List<Bid> userBids = biddingService.getUserBidsViaAuctionIdAndItemIdAndUsername(auctionId, itemId, username);
-        ResponseUserBid responseUserBid = new ResponseUserBid(userBids);
-        responseUserBid.setCurrentBid(biddingService.getLatestBidsViaAuctionIdAndItemId(auctionId, itemId).getBid());
-        responseUserBid.setYourBid(biddingService.getLatestBidsViaAuctionIdAndItemIdAndUsername(auctionId, itemId, username).getBid());
-
-        return ResponseEntity.ok(responseUserBid);
-    }
-
     @DeleteMapping("/auctions/{auctionId}")
     public ResponseEntity<String> deleteAuction(
             @PathVariable String auctionId,
             Authentication authentication) {
 
-        String username = authentication.getName();
-
-        if (auctionService.deleteAuction(auctionId, username)) {
+        if (auctionService.deleteAuction(auctionId, authentication)) {
             return ResponseEntity.ok("Auction deleted successfully");
         } else {
             return ResponseEntity.status(403)

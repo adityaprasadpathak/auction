@@ -42,11 +42,6 @@ public class OpenController {
     private final AuctionService auctionService;
     private final BiddingService biddingService;
 
-    @GetMapping("/auctions")
-    public Auction getAuctions() {
-        return Utility.createSampleAuction();
-    }
-
     @PostMapping("/registration")
     public ResponseEntity<String> registration(
             @RequestBody UserRegistration userRegistration,
@@ -109,38 +104,5 @@ public class OpenController {
         String jwtToken = jwtUtil.generateToken(userDetails);
 
         return ResponseEntity.ok(new AuthenticateResponse(jwtToken));
-    }
-
-    @GetMapping("/auction/{auctionId}/result")
-    public List<Result> getResult(@PathVariable String auctionId) {
-
-        if (!auctionService.isAuctionFinished(auctionId)) {
-            throw new AuctionServiceException(
-                    "Auction is still active",
-                    ServiceErrorCode.AUCTION_NOT_FINISHED
-            );
-        }
-
-        List<Item> auctionItems =
-                auctionService.getItemsForAuction(auctionId);
-
-        return auctionItems.stream()
-                .map(item -> {
-                    BidEntity bidEntity =
-                            biddingService.getCurrentHighestBidder(
-                                    auctionId,
-                                    item.getItemId()
-                            );
-
-                    if (bidEntity == null) return null;
-
-                    return Result.builder()
-                            .itemId(bidEntity.getItemId())
-                            .bidder(bidEntity.getUsername())
-                            .bidAmount(bidEntity.getBid())
-                            .build();
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
     }
 }

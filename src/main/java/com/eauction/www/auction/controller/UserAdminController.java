@@ -23,45 +23,28 @@ import java.util.List;
 @Slf4j
 public class UserAdminController {
 
-    @Autowired
-    public AuctionService auctionService;
+    public final AuctionService auctionService;
 
     private final BiddingService biddingService;
+//
+//    @GetMapping("/auctions")
+//    public ResponseEntity<ResponseAuction> getAuctions(
+//            @RequestParam(required = false) AuctionStatus auctionStatus,
+//            Authentication authentication) {
+//
+//        String username = authentication.getName();
+//        ResponseAuction responseAuction;
+//        if (auctionStatus != null) {
+//            responseAuction  = new ResponseAuction(auctionService.getAuctionsViaAuctionStatus(auctionStatus));
+//        } else {
+//            responseAuction = new ResponseAuction(auctionService.getAuctions());
+//        }
+//
+//
+//        return ResponseEntity.ok(responseAuction);
+//    }
 
-    /**
-     * This Api is used to create auction. Auction will always have an owner, which will be the user who created it.
-     *
-     * An Admin can also create an auction on behalf of a user. Remember an Admin can never be an owner of the auction.
-     *
-     * An Admin can never bid in an Auction
-     *
-     * @param auction
-     *
-     * @return
-     */
-    @PostMapping(value = "/auction")
-    public Auction createAuction(@RequestBody Auction auction) {
-        return auctionService.createAuction(auction);
-    }
-
-    @GetMapping("/auctions")
-    public ResponseEntity<ResponseAuction> getAuctions(
-            @RequestParam(required = false) AuctionStatus auctionStatus,
-            Authentication authentication) {
-
-        String username = authentication.getName();
-        ResponseAuction responseAuction;
-        if (auctionStatus != null) {
-            responseAuction  = new ResponseAuction(auctionService.getAuctionsViaAuctionStatus(auctionStatus));
-        } else {
-            responseAuction = new ResponseAuction(auctionService.getAuctions());
-        }
-
-
-        return ResponseEntity.ok(responseAuction);
-    }
-
-    @GetMapping("/auctions/{auctionId}")
+    /*@GetMapping("/auctions/{auctionId}")
     public ResponseEntity<ResponseAuction> getAuctions(
             @PathVariable String auctionId,
             Authentication authentication) {
@@ -71,25 +54,7 @@ public class UserAdminController {
         ResponseAuction responseAuction = new ResponseAuction(auctionService.getAuctionViaAuctionId(auctionId));
 
         return ResponseEntity.ok(responseAuction);
-    }
-
-    @GetMapping("/bid/auctions/{auctionId}/items/{itemId}")
-    public ResponseEntity<ResponseUserBid> getUserBids(
-            @PathVariable String auctionId,
-            @PathVariable String itemId,
-            @RequestParam(defaultValue = "false") boolean latestBidOnly,
-            Authentication authentication) {
-
-        log.info("Received request to get user bids for auctionId: {}, itemId: {}, latestBidOnly: {}", auctionId, itemId, latestBidOnly);
-
-        if (latestBidOnly) {
-            log.info("Fetching latest bid for auctionId: {}, itemId: {}", auctionId, itemId);
-            return ResponseEntity.ok(new ResponseUserBid(biddingService.getLatestBidsViaAuctionIdAndItemId(auctionId, itemId)));
-        }
-
-        log.info("Fetching all bids for auctionId: {}, itemId: {}", auctionId, itemId);
-        return ResponseEntity.ok(new ResponseUserBid(biddingService.getUserBidsViaAuctionIdAndItemId(auctionId, itemId)));
-    }
+    }*/
 
 
 

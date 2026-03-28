@@ -11,8 +11,9 @@ public final class ErrorConstants {
     public static final String AUCTION_NOT_ACTIVE = "Auction is not Active";
 
     public static final String ITEM_DOESNT_BELONG_TO_AUCTION = "Item doesn't belong to the Auction";
+    public static final String AUCTION_TEMPORARILY_STOPPED = "Auction is temporarily stopped. Please try again later";
 
-     private ErrorConstants() {
+    private ErrorConstants() {
          // private constructor to prevent instantiation
      }
 

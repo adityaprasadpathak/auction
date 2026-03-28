@@ -32,7 +32,8 @@ public class AuctionEntity {
         this.createdBy = auction.getCreatedBy();
         this.startTimestamp = auction.getStartTimestamp();
         this.stopTimestamp = auction.getStopTimestamp();
-        this.items = auction.getItems().stream().map(item -> new ItemEntity(item,this)).collect(Collectors.toList());
+        this.items = auction.getItems().stream().map(item -> new ItemEntity(item,this)).toList();
+        this.isTemporarilyStopped = auction.isTemporarilyStopped();
 
     }
 
@@ -80,6 +81,9 @@ public class AuctionEntity {
 
     @Column(name = "time_of_cancellation")
     private Long timeOfCancellation;
+
+    @Column(name = "is_temporarily_stopped", columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean isTemporarilyStopped;
 
     @PrePersist
     protected void onCreate() {

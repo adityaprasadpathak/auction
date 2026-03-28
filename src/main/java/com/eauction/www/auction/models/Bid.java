@@ -22,8 +22,8 @@ public class Bid {
     private String bidId;
     private String auctionId;
     private String itemId;
-    private Integer bid;
-    private Integer bidValueAtThatTime;
+    private Double bid;
+    private Double bidValueAtThatTime;
     private String username;
     private Long bidTime;
 

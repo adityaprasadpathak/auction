@@ -3,6 +3,7 @@ package com.eauction.www.auction.repository;
 import com.eauction.www.auction.dto.AuctionEntity;
 import com.eauction.www.auction.models.AuctionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface AuctionRepository extends JpaRepository<AuctionEntity, String> {
+public interface AuctionRepository extends JpaRepository<AuctionEntity, String>, JpaSpecificationExecutor<AuctionEntity> {
     // You can define additional query methods here if needed
     Optional<AuctionEntity> findByAuctionId(String auctionId);
 
@@ -48,4 +49,6 @@ public interface AuctionRepository extends JpaRepository<AuctionEntity, String> 
       AND a.startTimestamp <= :now
 """)
     int startEligibleAuctions(@Param("now") long now);
+
+    int countByStatus(AuctionStatus auctionStatus);
 }
