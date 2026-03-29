@@ -1,6 +1,8 @@
 package com.eauction.www.auction.models;
 
 import com.eauction.www.auction.dto.UserEntity;
+import jakarta.persistence.Column;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
@@ -12,7 +14,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Setter
+@Data
 @NoArgsConstructor
 public class MyUserDetails implements UserDetails {
 
@@ -23,6 +25,14 @@ public class MyUserDetails implements UserDetails {
     private boolean credentialsNonExpired;
     private boolean enabled;
     private List<GrantedAuthority> authorities;
+    private String firstname;
+    private String middlename;
+    private String lastname;
+    private String contactNumber;
+    private String address;
+    private String emailId;
+    private String orgType;
+    private boolean isBlacklisted;
 
     public MyUserDetails(UserEntity userEntity) {
         this.setAccountNonExpired(userEntity.isActive());
@@ -33,6 +43,15 @@ public class MyUserDetails implements UserDetails {
         this.setUsername(userEntity.getUsername());
         this.setAuthorities(Arrays.stream(userEntity.getRoles().split(",")).map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList()));
+        this.setFirstname(userEntity.getFirstname());
+        this.setMiddlename(userEntity.getMiddlename());
+        this.setLastname(userEntity.getLastname());
+        this.setContactNumber(userEntity.getContactNumber());
+        this.setAddress(userEntity.getAddress());
+        this.setEmailId(userEntity.getEmailId());
+        this.setOrgType(userEntity.getOrgType());
+        this.setBlacklisted(userEntity.isBlacklisted());
+
     }
 
     @Override

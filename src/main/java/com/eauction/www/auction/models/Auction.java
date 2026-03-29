@@ -39,6 +39,7 @@ public class Auction {
         this.status = auctionEntity.getStatus();
         this.items = auctionEntity.getItems().stream().map(Item::new).toList();
         this.isTemporarilyStopped = auctionEntity.isTemporarilyStopped();
+        this.reasonForCancellation = auctionEntity.getReasonForCancellation();
     }
 
 

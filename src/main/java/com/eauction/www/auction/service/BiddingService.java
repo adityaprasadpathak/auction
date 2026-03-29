@@ -37,22 +37,7 @@ public class BiddingService {
         String username = authentication.getName();
 
         // 1. Pre-validation (Status, Ownership, Admin rights)
-        // Done before the lock to keep the "critical section" short.
-        Auction auction = preValidateUserAndAuction(requestUserBid, username);
-
-        // 2. Fetch current highest bid WITH PESSIMISTIC LOCK
-        // This ensures no other user can process a bid for this item simultaneously.
-        Optional<BidEntity> highestBidEntity = bidRepository.findHighestBidByItemIdAndAuctionId(
-                requestUserBid.getItemId(), requestUserBid.getAuctionId());
-
-        Double currentHighest = highestBidEntity.map(BidEntity::getBid).orElse(0.0);
-
-        // 3. Bid Value Validation
-        if (requestUserBid.getBid() <= currentHighest) {
-            throw new BidServiceException(
-                    "Your bid must be higher than the current highest: " + currentHighest,
-                    ServiceErrorCode.BID_IS_LESS_THAN_CURR_VALUE);
-        }
+        double currentHighestBid = preValidateUserAndAuction(requestUserBid, username);
 
         // 4. Save the new Bid record
         BidEntity bidEntity = new BidEntity();
@@ -61,7 +46,7 @@ public class BiddingService {
         bidEntity.setItemId(requestUserBid.getItemId());
         bidEntity.setUsername(username);
         bidEntity.setBid(requestUserBid.getBid().doubleValue());
-        bidEntity.setBidValueAtThatTime(currentHighest);
+        bidEntity.setBidValueAtThatTime(currentHighestBid);
 
         BidEntity savedBid = bidRepository.save(bidEntity);
 
@@ -76,7 +61,7 @@ public class BiddingService {
     /**
      * Performs static checks that don't change based on other bids.
      */
-    private Auction preValidateUserAndAuction(RequestUserBid requestUserBid, String username) {
+    private double preValidateUserAndAuction(RequestUserBid requestUserBid, String username) {
         // Is it an Admin?
         if (requestContext.isAdmin()) {
             throw new BidServiceException("Admins are not allowed to bid", ServiceErrorCode.ADMIN_CANNOT_BID);
@@ -102,7 +87,22 @@ public class BiddingService {
             throw new AuctionServiceException(ErrorConstants.OWNER_BID_NOT_ALLOWED, ServiceErrorCode.BIDDER_SAME_AS_OWNER);
         }
 
-        return auction;
+        // is HIghest biider bidding again? then dont allow him
+            Optional<BidEntity> highestBidEntity = bidRepository.findHighestBidByItemIdAndAuctionId(
+                    requestUserBid.getItemId(), requestUserBid.getAuctionId());
+            if (highestBidEntity.isPresent() && highestBidEntity.get().getUsername().equals(username)) {
+                throw new BidServiceException("You are already the highest bidder. Please wait for someone to outbid you before placing another bid.", ServiceErrorCode.BID_IS_LESS_THAN_CURR_VALUE);
+            }
+
+            // Check bidders bid is higher than current highest bid
+        Double currentHighest = highestBidEntity.map(BidEntity::getBid).orElse(0.0);
+        if (requestUserBid.getBid() <= currentHighest) {
+            throw new BidServiceException(
+                    "Your bid must be higher than the current highest: " + currentHighest,
+                    ServiceErrorCode.BID_IS_LESS_THAN_CURR_VALUE);
+        }
+
+        return currentHighest;
     }
 
     public List<Bid> getBidsViaAuctionIdAndItemId(String auctionId, String itemId, Authentication authentication) {

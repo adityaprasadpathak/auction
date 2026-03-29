@@ -59,7 +59,7 @@ public class AuctionService {
     }
 
     public List<Auction> getAuctions(String username) {
-        return ConverterUtility.convertToAuctionList(auctionRepository.findByUsername(username));
+     return ConverterUtility.convertToAuctionList(auctionRepository.findByUsername(username));
     }
 
     public List<Auction> getAuctions(AuctionStatus status) {
@@ -138,7 +138,8 @@ public class AuctionService {
         return AuctionStatus.FINISHED.equals(getAuctionViaAuctionId(auctionId).getStatus());
     }
     public boolean isResultDeclared(String auctionId) {
-        return AuctionStatus.RESULT_DECLARED.equals(getAuctionViaAuctionId(auctionId).getStatus());
+        Auction auction = getAuctionViaAuctionId(auctionId);
+        return AuctionStatus.FINISHED.equals(auction.getStatus()) && auction.isResultDeclared();
     }
 
 
@@ -274,7 +275,6 @@ public class AuctionService {
                 throw new AuctionServiceException("Only finished auctions can be published", ServiceErrorCode.AUCTION_NOT_FINISHED);
 
             }
-            auction.setStatus(AuctionStatus.RESULT_DECLARED);
             auction.setResultDeclared(true);
             return new Auction(auctionRepository.save(new AuctionEntity(auction)));
         } else {
